@@ -18,7 +18,7 @@
     </Appenders>
 
     <Loggers>
-        <Logger name="ru.mos.mes" level="DEBUG" additivity="false">
+        <Logger name="com.spring.task.gymcrm" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="LogFile"/>
         </Logger>

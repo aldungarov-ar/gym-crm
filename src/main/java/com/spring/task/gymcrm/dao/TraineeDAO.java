@@ -2,6 +2,7 @@ package com.spring.task.gymcrm.dao;
 
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.exception.DBUpdateException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -9,6 +10,7 @@ import java.sql.ResultSet;
 import java.util.List;
 
 @Repository
+@Slf4j
 public class TraineeDAO extends BaseDAO {
     private final RowMapper<Trainee> rowMapper = (ResultSet rs, int rowNum) -> {
         Trainee trainee = new Trainee();

@@ -1,6 +1,7 @@
 package com.spring.task.gymcrm.dao;
 
 import com.spring.task.gymcrm.exception.DBUpdateException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -14,6 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 
 @Component
+@Slf4j
 public class BaseDAO {
 
     protected DataSource dataSource;
