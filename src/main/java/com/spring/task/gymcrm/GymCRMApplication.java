@@ -2,12 +2,14 @@ package com.spring.task.gymcrm;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @SpringBootApplication
-public class GymCrmApplication {
+@EnableAspectJAutoProxy
+public class GymCRMApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GymCrmApplication.class, args);
+		SpringApplication.run(GymCRMApplication.class, args);
 	}
 
 }
