@@ -8,6 +8,7 @@ import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.DBUpdateException;
 import com.spring.task.gymcrm.exception.TraineeNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,20 +17,14 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 @Service
+@RequiredArgsConstructor
 public class TraineeService {
 
     private final TraineeDAO traineeDAO;
     private final UserDAO userDAO;
     private final UserService userService;
 
-    @Autowired
-    public TraineeService(TraineeDAO traineeDAO, UserDAO userDAO, UserService userService) {
-        this.traineeDAO = traineeDAO;
-        this.userDAO = userDAO;
-        this.userService = userService;
-    }
-
-    public Trainee create(TraineeUpdateRq rq) throws DBUpdateException {
+      public Trainee create(TraineeUpdateRq rq) throws DBUpdateException {
         User user = new User(rq.getFirstName(), rq.getLastName());
         user.setId(userService.save(user));
 

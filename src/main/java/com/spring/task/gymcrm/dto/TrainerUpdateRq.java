@@ -1,11 +1,11 @@
 package com.spring.task.gymcrm.dto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 public class TrainerUpdateRq {
     private long id;
@@ -14,10 +14,4 @@ public class TrainerUpdateRq {
     private Long specializationId;
     private boolean isActive;
 
-    public TrainerUpdateRq(String firstName, String lastName, Long specializationId, boolean isActive) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.specializationId = specializationId;
-        this.isActive = isActive;
-    }
 }

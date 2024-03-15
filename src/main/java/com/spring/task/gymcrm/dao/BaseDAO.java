@@ -27,7 +27,7 @@ public class BaseDAO {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    protected Long update(String sql, Object... args) throws DBUpdateException {
+    protected Long update(String sql, Object... args) {
         try (PreparedStatement statement = dataSource.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < args.length; i++) {
                 statement.setString(i, args[i].toString());

@@ -53,7 +53,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void testCreateTrainee() throws DBUpdateException {
+    void testCreateTrainee() {
         when(userService.save(any(User.class))).thenReturn(1L); // Assuming user is saved and ID is returned
         when(traineeDAO.save(any(Trainee.class))).thenReturn(1L);
 

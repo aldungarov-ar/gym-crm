@@ -8,7 +8,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE training_types (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     training_type_name VARCHAR(255) UNIQUE NOT NULL
 );
 
