@@ -1,25 +1,25 @@
 package com.spring.task.gymcrm.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class User {
     private Long id;
     private String firstName;
     private String lastName;
     private String username;
     private String password;
-    private Boolean isActive;
+    private boolean isActive;
 
-    public User() {
-        this.isActive = false;
-    }
-
-    public User(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.username = firstName + "." + lastName;
-        this.isActive = false;
+    public User(User user) {
+        this.id = user.getId();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.isActive = user.isActive();
     }
 
     public void setFirstName(String firstName) {

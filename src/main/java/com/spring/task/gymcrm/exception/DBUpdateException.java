@@ -1,11 +1,9 @@
 package com.spring.task.gymcrm.exception;
 
-public class DBUpdateException extends RuntimeException {
-    public DBUpdateException(Exception e) {
-        super(e);
-    }
+import java.sql.SQLException;
 
-    public DBUpdateException(String message, Exception e) {
+public class DBUpdateException extends RuntimeException {
+    public DBUpdateException(String message, SQLException e) {
         super(message, e);
     }
 }

@@ -1,10 +1,10 @@
-package com.spring.task.gymcrm.v2.dto;
+package com.spring.task.gymcrm.dto;
 
 import lombok.Data;
 
 @Data
 public class TrainerUpdateRequest {
-    private Long trainerId;
-    private Long trainingTypeId;
+    private Long userId;
+    private Long specializationId;
     private UserUpdateRequest userUpdateRequest;
 }

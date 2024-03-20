@@ -1,4 +1,4 @@
-package com.spring.task.gymcrm.v2.dto;
+package com.spring.task.gymcrm.dto;
 
 import lombok.Data;
 
@@ -6,6 +6,5 @@ import lombok.Data;
 public class UserUpdateRequest {
     private String firstName;
     private String lastName;
-    private String userName;
-    private Boolean isActive;
+    private boolean userIsActive;
 }

@@ -1,4 +1,4 @@
-package com.spring.task.gymcrm.v2.dto;
+package com.spring.task.gymcrm.dto;
 
 import lombok.Data;
 
