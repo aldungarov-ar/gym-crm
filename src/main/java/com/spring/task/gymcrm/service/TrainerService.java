@@ -49,7 +49,7 @@ public class TrainerService {
         Trainer trainer = new Trainer();
         trainer.setFirstName(request.getUserUpdateRequest().getFirstName());
         trainer.setLastName(request.getUserUpdateRequest().getLastName());
-        trainer.setActive(request.getUserUpdateRequest().isUserIsActive());
+        trainer.setActive(request.getUserUpdateRequest().isActiveUser());
         trainer.setPassword(PasswordUtils.generatePassword());
 
         trainer.setSpecializationId(request.getSpecializationId());

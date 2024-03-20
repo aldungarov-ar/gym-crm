@@ -1,19 +1,32 @@
 package com.spring.task.gymcrm.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDate;
+import java.util.Date;
+import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-@NoArgsConstructor
-public class Trainee extends User {
-    public Trainee(User user) {
-        super(user);
-    }
+@Getter
+@Setter
+@Entity
+@Table(name = "trainees")
+public class Trainee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column
+    @Temporal(TemporalType.DATE)
+    private Date dateOfBirth;
+
+    @Column
     private String address;
-    private LocalDate dateOfBirth;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
+
+    @OneToMany(mappedBy = "trainee")
+    private Set<Training> trainings;
 }

@@ -1,7 +1,5 @@
 package com.spring.task.gymcrm;
 
-import com.spring.task.gymcrm.dto.TraineeUpdateRequest;
-import com.spring.task.gymcrm.dto.UserUpdateRequest;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.service.TraineeService;
 import org.jetbrains.annotations.NotNull;
@@ -46,11 +44,11 @@ class TraineeServiceTest {
     @Test
     void testCreateTraineeSuccess() {
         // given
-        TraineeUpdateRequest createTraineeRequest = createFixedTraineeUpdateRequest();
-        Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
 
         // when
-        Trainee trainee = traineeService.create(createTraineeRequest);
+        com.spring.task.gymcrm.entity.Trainee trainee = traineeService.create(createTraineeRequest);
 
         // then
         Assertions.assertNotNull(trainee);
@@ -63,25 +61,25 @@ class TraineeServiceTest {
     }
 
     @NotNull
-    static TraineeUpdateRequest createFixedTraineeUpdateRequest() {
+    static Trainee createFixedTraineeUpdateRequest() {
         UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
         userUpdateRequest.setFirstName("Samwise");
         userUpdateRequest.setLastName("Gamgee");
-        userUpdateRequest.setUserIsActive(true);
+        userUpdateRequest.setActiveUser(true);
 
-        TraineeUpdateRequest traineeUpdateRequest = new TraineeUpdateRequest();
-        traineeUpdateRequest.setUserUpdateRequest(userUpdateRequest);
-        traineeUpdateRequest.setDateOfBirth(LocalDate.of(1975, 1, 1));
-        traineeUpdateRequest.setAddress("Shire");
-        return traineeUpdateRequest;
+        Trainee trainee = new Trainee();
+        trainee.setUser(userUpdateRequest);
+        trainee.setDateOfBirth(LocalDate.of(1975, 1, 1));
+        trainee.setAddress("Shire");
+        return trainee;
     }
 
-    static Trainee createExpectedTrainee(TraineeUpdateRequest request) {
-        Trainee trainee = new Trainee();
-        trainee.setFirstName(request.getUserUpdateRequest().getFirstName());
-        trainee.setLastName(request.getUserUpdateRequest().getLastName());
-        trainee.setUsername(request.getUserUpdateRequest().getFirstName() + "." + request.getUserUpdateRequest().getLastName());
-        trainee.setActive(request.getUserUpdateRequest().isUserIsActive());
+    static com.spring.task.gymcrm.entity.Trainee createExpectedTrainee(Trainee request) {
+        com.spring.task.gymcrm.entity.Trainee trainee = new com.spring.task.gymcrm.entity.Trainee();
+        trainee.setFirstName(request.getUser().getFirstName());
+        trainee.setLastName(request.getUser().getLastName());
+        trainee.setUsername(request.getUser().getFirstName() + "." + request.getUser().getLastName());
+        trainee.setActive(request.getUser().isActiveUser());
         trainee.setAddress(request.getAddress());
         trainee.setDateOfBirth(request.getDateOfBirth());
         return trainee;
@@ -90,7 +88,7 @@ class TraineeServiceTest {
     @Test
     void testCreateTraineeBirthDateFailure() {
         // given
-        TraineeUpdateRequest expectedTrainee = createFixedTraineeUpdateRequest();
+        Trainee expectedTrainee = createFixedTraineeUpdateRequest();
         expectedTrainee.setDateOfBirth(LocalDate.now().plusDays(1));
 
         // when
@@ -103,9 +101,9 @@ class TraineeServiceTest {
     @Test
     void testCreateTraineeUserInfoValidationFailure() {
         // given
-        TraineeUpdateRequest createTraineeRequest = createFixedTraineeUpdateRequest();
-        createTraineeRequest.getUserUpdateRequest().setFirstName("");
-        createTraineeRequest.getUserUpdateRequest().setLastName("");
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        createTraineeRequest.getUser().setFirstName("");
+        createTraineeRequest.getUser().setLastName("");
 
         // when
         Exception exception = Assertions.assertThrows(Exception.class, () -> traineeService.create(createTraineeRequest));
@@ -120,21 +118,21 @@ class TraineeServiceTest {
         UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
         userUpdateRequest.setFirstName("Sean");
         userUpdateRequest.setLastName("Astin");
-        userUpdateRequest.setUserIsActive(false);
-        TraineeUpdateRequest traineeCreateRequest = new TraineeUpdateRequest();
-        traineeCreateRequest.setUserUpdateRequest(userUpdateRequest);
+        userUpdateRequest.setActiveUser(false);
+        Trainee traineeCreateRequest = new Trainee();
+        traineeCreateRequest.setUser(userUpdateRequest);
         traineeCreateRequest.setDateOfBirth(LocalDate.of(1971, 2, 25));
         traineeCreateRequest.setAddress("Santa Monica");
 
-        Trainee createdTrainee = traineeService.create(traineeCreateRequest);
+        com.spring.task.gymcrm.entity.Trainee createdTrainee = traineeService.create(traineeCreateRequest);
 
         // when
-        TraineeUpdateRequest traineeUpdateRequest = createFixedTraineeUpdateRequest();
-        traineeUpdateRequest.setUserId(createdTrainee.getId());
-        Trainee updatedTrainee = traineeService.update(traineeUpdateRequest);
+        Trainee trainee = createFixedTraineeUpdateRequest();
+        trainee.setId(createdTrainee.getId());
+        com.spring.task.gymcrm.entity.Trainee updatedTrainee = traineeService.update(trainee);
 
         // then
-        Trainee expectedTrainee = createExpectedTrainee(traineeUpdateRequest);
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(trainee);
         Assertions.assertNotNull(updatedTrainee);
         Assertions.assertEquals(createdTrainee.getId(), updatedTrainee.getId());
         Assertions.assertEquals(expectedTrainee.getFirstName(), updatedTrainee.getFirstName());
@@ -148,12 +146,12 @@ class TraineeServiceTest {
     @Test
     void findTraineeSuccess() {
         // given
-        TraineeUpdateRequest createTraineeRequest = createFixedTraineeUpdateRequest();
-        Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
-        Trainee createdTrainee = traineeService.create(createTraineeRequest);
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
+        com.spring.task.gymcrm.entity.Trainee createdTrainee = traineeService.create(createTraineeRequest);
 
         // when
-        Trainee foundTrainee = traineeService.get(createdTrainee.getId());
+        com.spring.task.gymcrm.entity.Trainee foundTrainee = traineeService.get(createdTrainee.getId());
 
         // then
         Assertions.assertNotNull(foundTrainee);
@@ -168,14 +166,13 @@ class TraineeServiceTest {
     @Test
     void deleteTraineeSuccess() {
         // given
-        TraineeUpdateRequest createTraineeRequest = createFixedTraineeUpdateRequest();
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
         Trainee createdTrainee = traineeService.create(createTraineeRequest);
 
         // when
-        boolean isDeleted = traineeService.delete(createdTrainee.getId());
+        traineeService.delete(createdTrainee);
 
         // then
-        Assertions.assertTrue(isDeleted);
         Assertions.assertNull(traineeService.get(createdTrainee.getId()));
     }
 }

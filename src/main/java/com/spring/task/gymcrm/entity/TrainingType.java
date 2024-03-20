@@ -1,9 +1,14 @@
 package com.spring.task.gymcrm.entity;
 
-import lombok.Data;
+import jakarta.persistence.*;
 
-@Data
+@Entity
+@Table(name = "training_types")
 public class TrainingType {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+    @Column(nullable = false)
+    private String trainingTypeName;
 }

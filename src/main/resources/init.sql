@@ -1,40 +1,47 @@
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
     is_active BOOLEAN NOT NULL
 );
 
-CREATE TABLE training_types (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL
-);
-
-CREATE TABLE trainers (
-    user_id INT UNIQUE,
-    specialization_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (specialization_id) REFERENCES training_types(id) ON DELETE SET NULL
-);
 
 CREATE TABLE trainees (
-    user_id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    date_of_birth DATE,
     address TEXT,
-    date_of_birth DATE NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE trainings (
+
+CREATE TABLE trainers (
     id BIGSERIAL PRIMARY KEY,
-    trainee_id INT,
-    trainer_id INT,
-    training_name VARCHAR(255),
-    training_type_id INT,
-    training_date DATE,
-    training_duration INT,
-    FOREIGN KEY (trainee_id) REFERENCES trainees(user_id) ON DELETE SET NULL,
-    FOREIGN KEY (trainer_id) REFERENCES trainers(user_id) ON DELETE SET NULL,
-    FOREIGN KEY (training_type_id) REFERENCES training_types(id) ON DELETE SET NULL
+    specialization_id INTEGER,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE training_types (
+    id BIGSERIAL PRIMARY KEY,
+    training_type_name TEXT NOT NULL
+);
+
+
+CREATE TABLE trainer_trainee (
+    trainee_id INTEGER REFERENCES trainees(id) ON DELETE CASCADE,
+    trainer_id INTEGER REFERENCES trainers(id) ON DELETE CASCADE,
+    PRIMARY KEY (trainee_id, trainer_id)
+);
+
+
+CREATE TABLE training (
+    id SERIAL PRIMARY KEY,
+    trainee_id INTEGER REFERENCES trainees(id) ON DELETE CASCADE,
+    trainer_id INTEGER REFERENCES trainers(id),
+    training_name TEXT NOT NULL,
+    training_type_id INTEGER REFERENCES training_types(id),
+    training_date DATE NOT NULL,
+    training_duration INTEGER NOT NULL
 );

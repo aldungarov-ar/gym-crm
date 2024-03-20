@@ -1,26 +1,45 @@
 package com.spring.task.gymcrm.entity;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
 @NoArgsConstructor
+@Getter
+@Setter
+@Entity
+@Table(name = "users")
 public class User {
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private String username;
-    private String password;
-    private boolean isActive;
 
-    public User(User user) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private Boolean isActive;
+
+    // TODO check if required
+    /*public User(User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.username = user.getUsername();
         this.password = user.getPassword();
-        this.isActive = user.isActive();
-    }
+        this.isActive = user.getIsActive();
+    }*/
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
