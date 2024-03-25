@@ -1,121 +1,178 @@
 package com.spring.task.gymcrm;
 
-import com.spring.task.gymcrm.dao.TraineeDAO;
-import com.spring.task.gymcrm.dao.UserDAO;
-import com.spring.task.gymcrm.dto.TraineeRs;
-import com.spring.task.gymcrm.dto.TraineeUpdateRq;
 import com.spring.task.gymcrm.entity.Trainee;
-import com.spring.task.gymcrm.entity.User;
-import com.spring.task.gymcrm.exception.DBUpdateException;
-import com.spring.task.gymcrm.exception.TraineeNotFoundException;
 import com.spring.task.gymcrm.service.TraineeService;
-import com.spring.task.gymcrm.service.UserService;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class TraineeServiceTest {
 
-    @Mock
-    TraineeDAO traineeDAO;
+    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
+    @Autowired
+    private TraineeService traineeService;
 
-    @Mock
-    UserDAO userDAO;
 
-    @Mock
-    UserService userService;
+    @BeforeAll
+    static void beforeAll() {
+        container.withInitScript("init.sql")
+                .start();
+    }
 
-    @InjectMocks
-    TraineeService traineeService;
+    @AfterAll
+    static void afterAll() {
+        container.stop();
+    }
 
-    TraineeUpdateRq traineeUpdateRq;
-    User user;
-    Trainee trainee;
-
-    @BeforeEach
-    void setUp() {
-        user = new User("FirstName", "LastName");
-        trainee = new Trainee(1L, "Tatooine", LocalDate.of(2012, 12, 1));
-        traineeUpdateRq = new TraineeUpdateRq();
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", container::getJdbcUrl);
+        registry.add("spring.datasource.username", container::getUsername);
+        registry.add("spring.datasource.password", container::getPassword);
     }
 
     @Test
-    void testCreateTrainee() throws DBUpdateException {
-        when(userService.save(any(User.class))).thenReturn(1L); // Assuming user is saved and ID is returned
-        when(traineeDAO.save(any(Trainee.class))).thenReturn(1L);
+    void testCreateTraineeSuccess() {
+        // given
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
 
-        Trainee createdTrainee = traineeService.create(traineeUpdateRq);
+        // when
+        com.spring.task.gymcrm.entity.Trainee trainee = traineeService.create(createTraineeRequest);
 
-        Assertions.assertNotNull(createdTrainee);
-        Assertions.assertEquals(1L, createdTrainee.getId());
-        verify(traineeDAO).save(any(Trainee.class));
+        // then
+        Assertions.assertNotNull(trainee);
+        Assertions.assertEquals(expectedTrainee.getFirstName(), trainee.getFirstName());
+        Assertions.assertEquals(expectedTrainee.getLastName(), trainee.getLastName());
+        Assertions.assertEquals(expectedTrainee.getUsername(), trainee.getUsername());
+        Assertions.assertEquals(expectedTrainee.isActive(), trainee.isActive());
+        Assertions.assertEquals(expectedTrainee.getAddress(), trainee.getAddress());
+        Assertions.assertEquals(expectedTrainee.getDateOfBirth(), trainee.getDateOfBirth());
+    }
+
+    @NotNull
+    static Trainee createFixedTraineeUpdateRequest() {
+        UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
+        userUpdateRequest.setFirstName("Samwise");
+        userUpdateRequest.setLastName("Gamgee");
+        userUpdateRequest.setActiveUser(true);
+
+        Trainee trainee = new Trainee();
+        trainee.setUser(userUpdateRequest);
+        trainee.setDateOfBirth(LocalDate.of(1975, 1, 1));
+        trainee.setAddress("Shire");
+        return trainee;
+    }
+
+    static com.spring.task.gymcrm.entity.Trainee createExpectedTrainee(Trainee request) {
+        com.spring.task.gymcrm.entity.Trainee trainee = new com.spring.task.gymcrm.entity.Trainee();
+        trainee.setFirstName(request.getUser().getFirstName());
+        trainee.setLastName(request.getUser().getLastName());
+        trainee.setUsername(request.getUser().getFirstName() + "." + request.getUser().getLastName());
+        trainee.setActive(request.getUser().isActiveUser());
+        trainee.setAddress(request.getAddress());
+        trainee.setDateOfBirth(request.getDateOfBirth());
+        return trainee;
     }
 
     @Test
-    void testUpdateTrainee() throws DBUpdateException {
-        when(traineeDAO.findById(traineeUpdateRq.getId())).thenReturn(trainee);
+    void testCreateTraineeBirthDateFailure() {
+        // given
+        Trainee expectedTrainee = createFixedTraineeUpdateRequest();
+        expectedTrainee.setDateOfBirth(LocalDate.now().plusDays(1));
 
-        Trainee updatedTrainee = traineeService.update(traineeUpdateRq);
+        // when
+        Exception exception = Assertions.assertThrows(Exception.class, () -> traineeService.create(expectedTrainee));
 
+        // then
+        Assertions.assertNotNull(exception);
+    }
+
+    @Test
+    void testCreateTraineeUserInfoValidationFailure() {
+        // given
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        createTraineeRequest.getUser().setFirstName("");
+        createTraineeRequest.getUser().setLastName("");
+
+        // when
+        Exception exception = Assertions.assertThrows(Exception.class, () -> traineeService.create(createTraineeRequest));
+
+        // then
+        Assertions.assertNotNull(exception);
+    }
+
+    @Test
+    void updateTraineeSuccess() {
+        // given
+        UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
+        userUpdateRequest.setFirstName("Sean");
+        userUpdateRequest.setLastName("Astin");
+        userUpdateRequest.setActiveUser(false);
+        Trainee traineeCreateRequest = new Trainee();
+        traineeCreateRequest.setUser(userUpdateRequest);
+        traineeCreateRequest.setDateOfBirth(LocalDate.of(1971, 2, 25));
+        traineeCreateRequest.setAddress("Santa Monica");
+
+        com.spring.task.gymcrm.entity.Trainee createdTrainee = traineeService.create(traineeCreateRequest);
+
+        // when
+        Trainee trainee = createFixedTraineeUpdateRequest();
+        trainee.setId(createdTrainee.getId());
+        com.spring.task.gymcrm.entity.Trainee updatedTrainee = traineeService.update(trainee);
+
+        // then
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(trainee);
         Assertions.assertNotNull(updatedTrainee);
-        Assertions.assertEquals(traineeUpdateRq.getAddress(), updatedTrainee.getAddress());
-        Assertions.assertEquals(traineeUpdateRq.getDateOfBirth(), updatedTrainee.getDateOfBirth());
-        verify(traineeDAO).update(any(Trainee.class));
+        Assertions.assertEquals(createdTrainee.getId(), updatedTrainee.getId());
+        Assertions.assertEquals(expectedTrainee.getFirstName(), updatedTrainee.getFirstName());
+        Assertions.assertEquals(expectedTrainee.getLastName(), updatedTrainee.getLastName());
+        Assertions.assertEquals(expectedTrainee.getUsername(), updatedTrainee.getUsername());
+        Assertions.assertEquals(expectedTrainee.isActive(), updatedTrainee.isActive());
+        Assertions.assertEquals(expectedTrainee.getAddress(), updatedTrainee.getAddress());
+        Assertions.assertEquals(expectedTrainee.getDateOfBirth(), updatedTrainee.getDateOfBirth());
     }
 
     @Test
-    void testDeleteTrainee() {
-        when(traineeDAO.deleteById(1L)).thenReturn(1);
+    void findTraineeSuccess() {
+        // given
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        com.spring.task.gymcrm.entity.Trainee expectedTrainee = createExpectedTrainee(createTraineeRequest);
+        com.spring.task.gymcrm.entity.Trainee createdTrainee = traineeService.create(createTraineeRequest);
 
-        Assertions.assertDoesNotThrow(() -> traineeService.deleteById(1L));
-    }
+        // when
+        com.spring.task.gymcrm.entity.Trainee foundTrainee = traineeService.get(createdTrainee.getId());
 
-    @Test
-    void testDeleteTrainee_NotFound() {
-        when(traineeDAO.deleteById(1L)).thenReturn(0);
-
-        Assertions.assertThrows(TraineeNotFoundException.class, () -> traineeService.deleteById(1L));
-    }
-
-    @Test
-    void testFindTraineeById() {
-        when(traineeDAO.findById(1L)).thenReturn(trainee);
-        when(userDAO.findById(trainee.getUserId())).thenReturn(user);
-
-        TraineeRs foundTrainee = traineeService.findById(1L);
-
+        // then
         Assertions.assertNotNull(foundTrainee);
-        Assertions.assertEquals(trainee.getId(), foundTrainee.getTrainee().getId());
-        Assertions.assertEquals(user.getId(), foundTrainee.getUser().getId());
+        Assertions.assertEquals(expectedTrainee.getFirstName(), foundTrainee.getFirstName());
+        Assertions.assertEquals(expectedTrainee.getLastName(), foundTrainee.getLastName());
+        Assertions.assertEquals(expectedTrainee.getUsername(), foundTrainee.getUsername());
+        Assertions.assertEquals(expectedTrainee.isActive(), foundTrainee.isActive());
+        Assertions.assertEquals(expectedTrainee.getAddress(), foundTrainee.getAddress());
+        Assertions.assertEquals(expectedTrainee.getDateOfBirth(), foundTrainee.getDateOfBirth());
     }
 
     @Test
-    void testFindAllTrainees() {
-        List<Trainee> traineesList = new ArrayList<>();
-        traineesList.add(trainee);
+    void deleteTraineeSuccess() {
+        // given
+        Trainee createTraineeRequest = createFixedTraineeUpdateRequest();
+        Trainee createdTrainee = traineeService.create(createTraineeRequest);
 
-        when(traineeDAO.findAll()).thenReturn(traineesList);
-        when(userDAO.findById(trainee.getUserId())).thenReturn(user);
+        // when
+        traineeService.delete(createdTrainee);
 
-        List<TraineeRs> traineesRsList = traineeService.findAll();
-
-        Assertions.assertFalse(traineesRsList.isEmpty());
-        Assertions.assertEquals(traineesList.size(), traineesRsList.size());
-        Assertions.assertEquals(trainee.getId(), traineesRsList.get(0).getTrainee().getId());
-        Assertions.assertEquals(user.getId(), traineesRsList.get(0).getUser().getId());
+        // then
+        Assertions.assertNull(traineeService.get(createdTrainee.getId()));
     }
-
 }
