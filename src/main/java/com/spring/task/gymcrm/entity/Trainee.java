@@ -27,6 +27,9 @@ public class Trainee {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    @ManyToMany
+    private Set<Trainer> trainers;
+
     @OneToMany(mappedBy = "trainee")
     private Set<Training> trainings;
 }

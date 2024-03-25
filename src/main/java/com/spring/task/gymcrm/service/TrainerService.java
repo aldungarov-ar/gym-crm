@@ -1,94 +1,120 @@
 package com.spring.task.gymcrm.service;
 
-import com.spring.task.gymcrm.dao.TrainerDAO;
-import com.spring.task.gymcrm.dto.TrainerUpdateRequest;
 import com.spring.task.gymcrm.entity.Trainer;
+import com.spring.task.gymcrm.entity.TrainingType;
+import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.GetRequestValidationException;
+import com.spring.task.gymcrm.exception.UnauthorizedException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
+import com.spring.task.gymcrm.repository.TrainerRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TrainerService {
-    private final TrainerDAO trainerDAO;
+    private final TrainerRepository trainerRepository;
     private final TrainingTypeService trainingTypeService;
 
-    public Trainer create(TrainerUpdateRequest request) {
+    public Trainer create(Trainer request) {
         log.debug("Creating new Trainer: {}", request);
         validateTrainerCreateRequest(request);
         Trainer trainer = createTrainerFromRequest(request);
-        Trainer createdTrainee = trainerDAO.save(trainer);
+        Trainer createdTrainee = trainerRepository.save(trainer);
         log.info("Trainer created successfully with ID: {}", createdTrainee.getId());
         return createdTrainee;
     }
 
-    private void validateTrainerCreateRequest(TrainerUpdateRequest request) {
-        UserUtils.validateUserCreateRequest(request.getUserUpdateRequest());
+    private void validateTrainerCreateRequest(Trainer request) {
+        UserUtils.validateUserCreateRequest(request.getUser());
 
-        boolean errorOccurred = false;
-        String message = "Failed to create new Trainer: \n";
-
-        String trainingTypeValidationErrorMessage = validateTrainingType(request.getSpecializationId());
-        if (!trainingTypeValidationErrorMessage.isEmpty()) {
-            message += trainingTypeValidationErrorMessage;
-            errorOccurred = true;
-        }
-
-        if (errorOccurred) {
-            log.error(message);
-            throw new UpdateRequestValidationException(message);
+        TrainingType trainingType = trainingTypeService.get(request.getSpecialization().getId());
+        if (trainingType == null) {
+            throw new EntityNotFoundException("Training type with ID " + request.getSpecialization().getId() + " not found!");
         }
     }
 
-    private Trainer createTrainerFromRequest(TrainerUpdateRequest request) {
+    private Trainer createTrainerFromRequest(Trainer request) {
+        User user = new User();
+        user.setFirstName(request.getUser().getFirstName());
+        user.setLastName(request.getUser().getLastName());
+        user.setIsActive(request.getUser().getIsActive());
+        user.setPassword(PasswordUtils.generatePassword());
+
         Trainer trainer = new Trainer();
-        trainer.setFirstName(request.getUserUpdateRequest().getFirstName());
-        trainer.setLastName(request.getUserUpdateRequest().getLastName());
-        trainer.setActive(request.getUserUpdateRequest().isActiveUser());
-        trainer.setPassword(PasswordUtils.generatePassword());
+        trainer.setUser(user);
 
-        trainer.setSpecializationId(request.getSpecializationId());
+        Long specializationId = request.getSpecialization().getId();
+        TrainingType trainingType = trainingTypeService.get(specializationId);
+        trainer.setSpecialization(trainingType);
         return trainer;
     }
 
-    public Trainer update(TrainerUpdateRequest request) {
-        log.debug("Updating Trainer with ID: {}. Update request: {}.", request.getUserId(), request);
-        Trainer trainer = get(request.getUserId());
-        if (request.getSpecializationId() != null && request.getSpecializationId() >= 0) {
-            trainer.setSpecializationId(request.getSpecializationId());
+    public Trainer update(Trainer request) {
+        log.debug("Updating Trainer with ID: {}", request.getId());
+
+        if (!isAuthorized(request)) {
+            throw new UnauthorizedException("Authorization failed when trying to update trainer id " + request.getId());
         }
-        if (request.getUserUpdateRequest() != null) {
-            UserUtils.updateUserFields(trainer, request.getUserUpdateRequest());
+
+        Trainer trainer = get(request.getId());
+        if (request.getSpecialization() != null) {
+            trainer.setSpecialization(request.getSpecialization());
         }
-        return trainerDAO.save(trainer);
+        if (request.getUser() != null) {
+            UserUtils.updateUserFields(trainer.getUser(), request.getUser());
+        }
+        return trainerRepository.save(trainer);
     }
 
-    public Trainer get(Long userId) {
-        Trainer trainer = trainerDAO.findById(userId);
-        if (trainer == null) {
-            log.error("Trainee with ID {} not found.", userId);
-            throw new EntityNotFoundException("Trainee with ID " + userId + " not found.");
+    public Trainer get(Long id) {
+        if (id == null) {
+            throw new GetRequestValidationException("Trainer ID must be set!");
         }
-        return trainer;
+        return trainerRepository.findById(id).orElse(null);
     }
 
-    private String validateTrainingType(Long trainingTypeId) {
-        String errorMessage = "";
-        if (trainingTypeId == null || trainingTypeId < 0) {
-            errorMessage += "Training type ID must be set and > 0!\n";
-        } else {
-            try {
-                trainingTypeService.get(trainingTypeId);
-            } catch (EntityNotFoundException e) {
-                errorMessage += "Training type with ID " + trainingTypeId + " not found!\n";
-            }
+    public Trainer get(String username) {
+        if (username == null || username.isEmpty()) {
+            throw new GetRequestValidationException("Trainer USERNAME must be set!");
         }
+        return trainerRepository.findByUser_Username(username).orElse(null);
+    }
 
-        return errorMessage;
+    public void activate(Long id) {
+        if (id == null) {
+            throw new UpdateRequestValidationException("Trainer ID must be set!");
+        }
+        Trainer trainer = trainerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Failed to activate Trainer. Trainer ID: " + id + " not found!"));
+        trainer.getUser().setIsActive(true);
+        trainerRepository.save(trainer);
+    }
+
+    public void deActivate(Long id) {
+        if (id == null) {
+            throw new UpdateRequestValidationException("Trainer ID must be set!");
+        }
+        Trainer trainer = trainerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Failed to activate Trainer. Trainer ID: " + id + " not found!"));
+        trainer.getUser().setIsActive(false);
+        trainerRepository.save(trainer);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isAuthorized(Trainer request) {
+        Long id = request.getId();
+        Trainer trainer = trainerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Unauthorized! Trainee id: %s not found!", id)));
+        return trainer.getUser().getUsername().equals(request.getUser().getUsername()) &&
+                trainer.getUser().getPassword().equals(request.getUser().getPassword());
+    }
+
+    public List<Trainer> getTrainersNotAssigned(String traineeUserName) {
+        return trainerRepository.findByTrainees_User_UsernameNotIgnoreCase(traineeUserName);
     }
 }

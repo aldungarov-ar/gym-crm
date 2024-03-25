@@ -1,7 +1,7 @@
 package com.spring.task.gymcrm.utils;
 
-import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.entity.User;
+import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -1,10 +1,14 @@
 package com.spring.task.gymcrm.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
 
+@Getter
+@Setter
 @Entity
 @Table(name = "trainings")
 public class Training {

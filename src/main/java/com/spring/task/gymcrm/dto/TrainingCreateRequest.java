@@ -2,8 +2,7 @@ package com.spring.task.gymcrm.dto;
 
 import lombok.Data;
 
-import java.time.Duration;
-import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 public class TrainingCreateRequest {
@@ -11,6 +10,6 @@ public class TrainingCreateRequest {
     private Long trainerId;
     private String name;
     private Long trainingTypeId;
-    private LocalDate date;
-    private Duration duration;
+    private Date date;
+    private int duration;
 }

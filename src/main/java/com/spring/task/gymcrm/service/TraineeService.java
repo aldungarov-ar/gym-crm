@@ -4,6 +4,7 @@ package com.spring.task.gymcrm.service;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.GetRequestValidationException;
 import com.spring.task.gymcrm.exception.UnauthorizedException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
@@ -45,6 +46,8 @@ public class TraineeService {
     }
 
     private Trainee createTraineeFromRequest(Trainee request) {
+        validateTraineeCreateRequest(request);
+
         User user = new User();
         user.setFirstName(request.getUser().getFirstName());
         user.setLastName(request.getUser().getLastName());
@@ -81,9 +84,16 @@ public class TraineeService {
 
     public Trainee get(Long id) {
         if (id == null) {
-            throw new UpdateRequestValidationException("Trainee ID must be set!");
+            throw new GetRequestValidationException("Trainee ID must be set!");
         }
         return traineeRepository.findById(id).orElse(null);
+    }
+
+    public Trainee get(String username) {
+        if (username == null || username.isEmpty()) {
+            throw new GetRequestValidationException("Trainee USERNAME must be set!");
+        }
+        return traineeRepository.findByUser_Username(username).orElse(null);
     }
 
     public void delete(Trainee trainee) {
@@ -99,5 +109,23 @@ public class TraineeService {
         Trainee trainee = traineeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Unauthorized! Trainee id: %s not found!", id)));
         return trainee.getUser().getUsername().equals(request.getUser().getUsername()) &&
                 trainee.getUser().getPassword().equals(request.getUser().getPassword());
+    }
+
+    public void activate(Long id) {
+        if (id == null) {
+            throw new UpdateRequestValidationException("Trainee ID must be set!");
+        }
+        Trainee trainee = traineeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Failed to activate Trainee. Trainee ID: " + id + " not found!"));
+        trainee.getUser().setIsActive(true);
+        traineeRepository.save(trainee);
+    }
+
+    public void deActivate(Long id) {
+        if (id == null) {
+            throw new UpdateRequestValidationException("Trainee ID must be set!");
+        }
+        Trainee trainee = traineeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Failed to activate Trainee. Trainee ID: " + id + " not found!"));
+        trainee.getUser().setIsActive(false);
+        traineeRepository.save(trainee);
     }
 }

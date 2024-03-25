@@ -1,8 +1,7 @@
 package com.spring.task.gymcrm.service;
 
-import com.spring.task.gymcrm.dao.TrainingTypeDAO;
 import com.spring.task.gymcrm.entity.TrainingType;
-import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.repository.TrainingTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,15 +10,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class TrainingTypeService {
-    private final TrainingTypeDAO trainingTypeDAO;
+    private final TrainingTypeRepository trainingTypeRepository;
 
     public TrainingType get(Long id) {
-        TrainingType trainingType = trainingTypeDAO.findById(id);
-        if (trainingType == null) {
-            log.error("No training type found with ID: {}.", id);
-            throw new EntityNotFoundException("No training type found with ID: " + id);
-        }
-
-        return trainingType;
+        return trainingTypeRepository.findById(id).orElse(null);
     }
 }

@@ -2,40 +2,49 @@ package com.spring.task.gymcrm.service;
 
 
 import com.spring.task.gymcrm.dto.TrainingCreateRequest;
-import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
-import com.spring.task.gymcrm.dao.TrainingDAO;
 import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.GetRequestValidationException;
+import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
+import com.spring.task.gymcrm.repository.CriteriaName;
+import com.spring.task.gymcrm.repository.TrainingRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class TrainingService {
-    private final TrainingDAO trainingDAO;
+    private final TrainingRepository trainingRepository;
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingTypeService trainingTypeService;
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     public Training create(TrainingCreateRequest request) {
         log.debug("Creating new Training: {}", request);
         validateTrainingCreateRequest(request);
         Training training = createTrainingFromRequest(request);
-        Training createdTraining = trainingDAO.save(training);
+        Training createdTraining = trainingRepository.save(training);
         log.info("Training created successfully with ID: {}", createdTraining.getId());
         return createdTraining;
     }
 
     private Training createTrainingFromRequest(TrainingCreateRequest request) {
         Training training = new Training();
-        training.setTraineeId(traineeService.get(request.getTraineeId()).getId());
-        training.setTrainerId(trainerService.get(request.getTrainerId()).getId());
-        training.setName(request.getName());
-        training.setTrainingTypeId(trainingTypeService.get(request.getTrainingTypeId()).getId());
-        training.setDate(request.getDate());
-        training.setDuration(request.getDuration());
+        training.setTrainee(traineeService.get(request.getTraineeId()));
+        training.setTrainer(trainerService.get(request.getTrainerId()));
+        training.setTrainingName(request.getName());
+        training.setTrainingType(trainingTypeService.get(request.getTrainingTypeId()));
+        training.setTrainingDate(request.getDate());
+        training.setTrainingDuration(request.getDuration());
         return training;
     }
 
@@ -119,5 +128,27 @@ public class TrainingService {
         }
 
         return errorMessage;
+    }
+
+    public List<Training> findByTraineeUsername(String username) {
+        if (username == null || username.isEmpty()) {
+            throw new GetRequestValidationException("Could not find training. TRAINEE username is not provided!");
+        }
+        return trainingRepository.findByTraineeUsername(username);
+    }
+
+    public List<Training> findByTraineeUsernameWithCriteria(String username, Map<CriteriaName, Object> criteria) {
+        return trainingRepository.findByTraineeUsernameWithCriteria(username, criteria);
+    }
+
+    public List<Training> findByTrainerUsername(String username) {
+        if (username == null || username.isEmpty()) {
+            throw new GetRequestValidationException("Could not find training. TRAINER username is not provided!");
+        }
+        return trainingRepository.findByTrainerUsername(username);
+    }
+
+    public List<Training> findByTrainerUsernameWithCriteria(String username, Map<CriteriaName, Object> criteria) {
+        return trainingRepository.findByTrainerUsernameWithCriteria(username, criteria);
     }
 }

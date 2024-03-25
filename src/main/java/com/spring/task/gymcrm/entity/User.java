@@ -31,16 +31,6 @@ public class User {
     @Column(nullable = false)
     private Boolean isActive;
 
-    // TODO check if required
-    /*public User(User user) {
-        this.id = user.getId();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.isActive = user.getIsActive();
-    }*/
-
     public void setFirstName(String firstName) {
         this.firstName = firstName;
         this.username = firstName + "." + this.lastName;

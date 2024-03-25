@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Table(name = "trainer_trainee")
 public class TrainerTrainee {
     @EmbeddedId
-    private TrainerTraineeId id = new TrainerTraineeId();
+    private final TrainerTraineeId id = new TrainerTraineeId();
 
     @ManyToOne
     @MapsId("traineeId")
