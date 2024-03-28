@@ -10,7 +10,7 @@ public class UserUtils {
     private UserUtils() {
     }
 
-    public static void validateUserCreateRequest(User requestUser) {
+    public static void validateCreateUserRequest(User requestUser) {
         boolean errorOccurred = false;
         String message = "Failed to create new User: \n";
         if (requestUser.getFirstName() == null || requestUser.getFirstName().isEmpty()) {

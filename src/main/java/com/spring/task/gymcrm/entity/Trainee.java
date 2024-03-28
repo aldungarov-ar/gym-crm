@@ -16,11 +16,9 @@ public class Trainee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
-    @Column
     private String address;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

@@ -4,8 +4,7 @@ import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.TrainingType;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
-import com.spring.task.gymcrm.exception.GetRequestValidationException;
-import com.spring.task.gymcrm.exception.UnauthorizedException;
+import com.spring.task.gymcrm.exception.RequestValidationException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TrainerRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
@@ -33,7 +32,7 @@ public class TrainerService {
     }
 
     private void validateTrainerCreateRequest(Trainer request) {
-        UserUtils.validateUserCreateRequest(request.getUser());
+        UserUtils.validateCreateUserRequest(request.getUser());
 
         TrainingType trainingType = trainingTypeService.get(request.getSpecialization().getId());
         if (trainingType == null) {
@@ -60,10 +59,6 @@ public class TrainerService {
     public Trainer update(Trainer request) {
         log.debug("Updating Trainer with ID: {}", request.getId());
 
-        if (!isAuthorized(request)) {
-            throw new UnauthorizedException("Authorization failed when trying to update trainer id " + request.getId());
-        }
-
         Trainer trainer = get(request.getId());
         if (request.getSpecialization() != null) {
             trainer.setSpecialization(request.getSpecialization());
@@ -76,16 +71,16 @@ public class TrainerService {
 
     public Trainer get(Long id) {
         if (id == null) {
-            throw new GetRequestValidationException("Trainer ID must be set!");
+            throw new RequestValidationException("Trainer ID must be set!");
         }
         return trainerRepository.findById(id).orElse(null);
     }
 
     public Trainer get(String username) {
         if (username == null || username.isEmpty()) {
-            throw new GetRequestValidationException("Trainer USERNAME must be set!");
+            throw new RequestValidationException("Trainer USERNAME must be set!");
         }
-        return trainerRepository.findByUser_Username(username).orElse(null);
+        return trainerRepository.findByUsername(username).orElse(null);
     }
 
     public void activate(Long id) {
@@ -106,15 +101,7 @@ public class TrainerService {
         trainerRepository.save(trainer);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isAuthorized(Trainer request) {
-        Long id = request.getId();
-        Trainer trainer = trainerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Unauthorized! Trainee id: %s not found!", id)));
-        return trainer.getUser().getUsername().equals(request.getUser().getUsername()) &&
-                trainer.getUser().getPassword().equals(request.getUser().getPassword());
-    }
-
     public List<Trainer> getTrainersNotAssigned(String traineeUserName) {
-        return trainerRepository.findByTrainees_User_UsernameNotIgnoreCase(traineeUserName);
+        return trainerRepository.findTrainersNotAssignedByTraineeUsernameIgnoreCase(traineeUserName);
     }
 }

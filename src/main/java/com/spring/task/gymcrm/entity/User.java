@@ -1,13 +1,12 @@
 package com.spring.task.gymcrm.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@NoArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "users")
 public class User {
@@ -39,5 +38,44 @@ public class User {
     public void setLastName(String lastName) {
         this.lastName = lastName;
         this.username = this.firstName + "." + lastName;
+    }
+
+    private User(UserBuilder builder) {
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
+        this.username = firstName + "." + lastName;
+        this.password = builder.password;
+        this.isActive = builder.isActive;
+    }
+
+    public static class UserBuilder {
+        private String firstName;
+        private String lastName;
+        private String password;
+        private Boolean isActive;
+
+        public UserBuilder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public UserBuilder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public UserBuilder isActive(Boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
+        public UserBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public User build() {
+            return new User(this);
+        }
     }
 }

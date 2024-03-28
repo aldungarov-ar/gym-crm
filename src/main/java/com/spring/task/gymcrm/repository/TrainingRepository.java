@@ -1,105 +1,18 @@
 package com.spring.task.gymcrm.repository;
 
-import com.spring.task.gymcrm.entity.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.*;
-import lombok.RequiredArgsConstructor;
+import com.spring.task.gymcrm.entity.Training;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-@RequiredArgsConstructor
 @Repository
-public class TrainingRepository {
+public interface TrainingRepository extends JpaRepository<Training, Long> {
 
-    @PersistenceContext
-    private final EntityManager entityManager;
+    @Query("select t from Training t where upper(t.trainee.user.username) = upper(?1)")
+    List<Training> findByTrainee_User_UsernameIgnoreCase(String username);
 
-    private final GeneralTrainingRepository generalTrainingRepository;
-
-    public List<Training> findByTrainerUsernameWithCriteria(String username, Map<CriteriaName, Object> criteriaMap) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Training> criteria = criteriaBuilder.createQuery(Training.class);
-        Root<Training> training = criteria.from(Training.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (criteriaMap.containsKey(CriteriaName.FROM_DATE)) {
-            Date dateFrom = (Date) criteriaMap.get(CriteriaName.FROM_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
-        }
-
-        if (criteriaMap.containsKey(CriteriaName.TO_DATE)) {
-            Date dateFrom = (Date) criteriaMap.get(CriteriaName.TO_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
-        }
-
-        if (criteriaMap.containsKey(CriteriaName.TRAINEE_USERNAME)) {
-            Join<Training, Trainee> trainee = training.join("trainee", JoinType.INNER);
-            String traineeUsername = criteriaMap.get(CriteriaName.TRAINEE_USERNAME).toString();
-            Join<Trainee, User> user = trainee.join("user", JoinType.INNER);
-            predicates.add(criteriaBuilder.equal(user.get("username"), traineeUsername));
-        }
-
-        Join<Training, Trainer> trainer = training.join("trainer", JoinType.INNER);
-        Join<Trainer, User> user = trainer.join("user", JoinType.INNER);
-        predicates.add(criteriaBuilder.equal(user.get("username"), username));
-
-        criteria.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
-        return entityManager.createQuery(criteria).getResultList();
-    }
-
-    public List<Training> findByTraineeUsernameWithCriteria(String username, Map<CriteriaName, Object> criteriaMap) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Training> criteria = criteriaBuilder.createQuery(Training.class);
-        Root<Training> training = criteria.from(Training.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (criteriaMap.containsKey(CriteriaName.FROM_DATE)) {
-            Date dateFrom = (Date) criteriaMap.get(CriteriaName.FROM_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
-        }
-
-        if (criteriaMap.containsKey(CriteriaName.TO_DATE)) {
-            Date dateFrom = (Date) criteriaMap.get(CriteriaName.TO_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
-        }
-
-        if (criteriaMap.containsKey(CriteriaName.TRAINER_USERNAME)) {
-            Join<Training, Trainer> trainer = training.join("trainer", JoinType.INNER);
-            String trainerUsername = criteriaMap.get(CriteriaName.TRAINEE_USERNAME).toString();
-            Join<Trainer, User> user = trainer.join("user", JoinType.INNER);
-            predicates.add(criteriaBuilder.equal(user.get("username"), trainerUsername));
-        }
-
-        if (criteriaMap.containsKey(CriteriaName.TRAINING_TYPE)) {
-            Join<Training, TrainingType> trainingType = training.join("trainingType", JoinType.INNER);
-            int trainingTypeId = Integer.parseInt(criteriaMap.get(CriteriaName.TRAINING_TYPE).toString());
-            predicates.add(criteriaBuilder.equal(trainingType.get("id"), trainingTypeId));
-        }
-
-        Join<Training, Trainee> trainee = training.join("trainee", JoinType.INNER);
-        Join<Trainer, User> user = trainee.join("user", JoinType.INNER);
-        predicates.add(criteriaBuilder.equal(user.get("username"), username));
-
-        criteria.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
-        return entityManager.createQuery(criteria).getResultList();
-    }
-
-    public Training save(Training training) {
-        return generalTrainingRepository.save(training);
-    }
-
-    public List<Training> findByTraineeUsername(String username) {
-        return generalTrainingRepository.findByTrainee_User_UsernameIgnoreCase(username);
-    }
-
-    public List<Training> findByTrainerUsername(String username) {
-        return generalTrainingRepository.findByTrainer_User_UsernameIgnoreCase(username);
-    }
+    @Query("select t from Training t where upper(t.trainer.user.username) = upper(?1)")
+    List<Training> findByTrainer_User_UsernameIgnoreCase(String username);
 }

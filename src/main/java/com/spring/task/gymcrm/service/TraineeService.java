@@ -4,8 +4,7 @@ package com.spring.task.gymcrm.service;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
-import com.spring.task.gymcrm.exception.GetRequestValidationException;
-import com.spring.task.gymcrm.exception.UnauthorizedException;
+import com.spring.task.gymcrm.exception.RequestValidationException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
@@ -24,15 +23,15 @@ public class TraineeService {
 
     public Trainee create(Trainee request) {
         log.debug("Creating new Trainee: {}", request);
-        validateTraineeCreateRequest(request);
-        Trainee trainee = createTraineeFromRequest(request);
+        validateCreateTraineeRequest(request);
+        Trainee trainee = getTraineeFromRequest(request);
         Trainee createdTrainee = traineeRepository.save(trainee);
         log.info("Trainee created successfully with ID: {}", createdTrainee.getId());
         return createdTrainee;
     }
 
-    private void validateTraineeCreateRequest(Trainee request) {
-        UserUtils.validateUserCreateRequest(request.getUser());
+    private void validateCreateTraineeRequest(Trainee request) {
+        UserUtils.validateCreateUserRequest(request.getUser());
         boolean errorOccurred = false;
         String message = "Failed to create new Trainee: \n";
         if (request.getDateOfBirth().after(new Date())) {
@@ -45,14 +44,16 @@ public class TraineeService {
         }
     }
 
-    private Trainee createTraineeFromRequest(Trainee request) {
-        validateTraineeCreateRequest(request);
+    private Trainee getTraineeFromRequest(Trainee request) {
+        User requestUser = request.getUser();
+        UserUtils.validateCreateUserRequest(requestUser);
 
-        User user = new User();
-        user.setFirstName(request.getUser().getFirstName());
-        user.setLastName(request.getUser().getLastName());
-        user.setIsActive(request.getUser().getIsActive());
-        user.setPassword(PasswordUtils.generatePassword());
+        User user = User.builder()
+                .firstName(requestUser.getFirstName())
+                .lastName(requestUser.getLastName())
+                .isActive(requestUser.getIsActive())
+                .password(PasswordUtils.generatePassword())
+                .build();
 
         Trainee trainee = new Trainee();
         trainee.setUser(user);
@@ -63,10 +64,6 @@ public class TraineeService {
 
     public Trainee update(Trainee request) {
         log.debug("Updating Trainee with ID: {}", request.getId());
-
-        if (!isAuthorized(request)) {
-            throw new UnauthorizedException("Authorization failed when trying to update trainee id " + request.getId());
-        }
 
         Trainee trainee = get(request.getId());
         if (request.getDateOfBirth() != null && !request.getDateOfBirth().equals(trainee.getDateOfBirth()) &&
@@ -84,31 +81,20 @@ public class TraineeService {
 
     public Trainee get(Long id) {
         if (id == null) {
-            throw new GetRequestValidationException("Trainee ID must be set!");
+            throw new RequestValidationException("Trainee ID must be set!");
         }
         return traineeRepository.findById(id).orElse(null);
     }
 
     public Trainee get(String username) {
         if (username == null || username.isEmpty()) {
-            throw new GetRequestValidationException("Trainee USERNAME must be set!");
+            throw new RequestValidationException("Trainee USERNAME must be set!");
         }
-        return traineeRepository.findByUser_Username(username).orElse(null);
+        return traineeRepository.findByUsername(username).orElse(null);
     }
 
     public void delete(Trainee trainee) {
-        if (!isAuthorized(trainee)) {
-            throw new UnauthorizedException("Authorization failed when trying to delete trainee id " + trainee.getId());
-        }
         traineeRepository.delete(trainee);
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isAuthorized(Trainee request) {
-        Long id = request.getId();
-        Trainee trainee = traineeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Unauthorized! Trainee id: %s not found!", id)));
-        return trainee.getUser().getUsername().equals(request.getUser().getUsername()) &&
-                trainee.getUser().getPassword().equals(request.getUser().getPassword());
     }
 
     public void activate(Long id) {

@@ -4,29 +4,28 @@ package com.spring.task.gymcrm.service;
 import com.spring.task.gymcrm.dto.TrainingCreateRequest;
 import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
-import com.spring.task.gymcrm.exception.GetRequestValidationException;
+import com.spring.task.gymcrm.exception.RequestValidationException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.CriteriaName;
-import com.spring.task.gymcrm.repository.TrainingRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import com.spring.task.gymcrm.repository.TrainingCriteriaRepository;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class TrainingService {
-    private final TrainingRepository trainingRepository;
+    private final TrainingCriteriaRepository trainingRepository;
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingTypeService trainingTypeService;
-    @PersistenceContext
-    private final EntityManager entityManager;
 
     public Training create(TrainingCreateRequest request) {
         log.debug("Creating new Training: {}", request);
@@ -49,28 +48,53 @@ public class TrainingService {
     }
 
     private void validateTrainingCreateRequest(TrainingCreateRequest request) {
+        List<Function<TrainingCreateRequest, String>> validations = Arrays.asList(
+                this::validateTrainee,
+                this::validateTrainer,
+                this::validateTrainingType
+        );
+
+        boolean errorOccurred = false;
+        StringBuilder message = new StringBuilder("Failed to create new Training: \n");
+
+        for (Function<TrainingCreateRequest, String> validation : validations) {
+            String errorMessage = validation.apply(request);
+            if (!StringUtils.isBlank(errorMessage)) {
+                message.append(errorMessage);
+                errorOccurred = true;
+            }
+        }
+
+        if (errorOccurred) {
+            log.error(message.toString());
+            throw new UpdateRequestValidationException(message.toString());
+        }
+    }
+
+
+    /*private void validateTrainingCreateRequest(TrainingCreateRequest request) {
         boolean errorOccurred = false;
         String message = "Failed to create new Training: \n";
 
         String trainerValidationErrorMessage = validateTrainer(request.getTrainerId());
-        if (trainerValidationErrorMessage != null && !trainerValidationErrorMessage.isEmpty()) {
+        if (!StringUtils.isBlank(trainerValidationErrorMessage)) {
             message += trainerValidationErrorMessage;
             errorOccurred = true;
         }
 
         String traineeValidationErrorMessage = validateTrainee(request.getTraineeId());
-        if (traineeValidationErrorMessage != null && !traineeValidationErrorMessage.isEmpty()) {
+        if (!StringUtils.isBlank(traineeValidationErrorMessage)) {
             message += traineeValidationErrorMessage;
             errorOccurred = true;
         }
 
-        if (request.getName() == null || request.getName().isEmpty()) {
+        if (StringUtils.isBlank(request.getName())) {
             message += "Training name must be set!\n";
             errorOccurred = true;
         }
 
         String trainingTypeValidationErrorMessage = validateTrainingType(request.getTrainingTypeId());
-        if (trainingTypeValidationErrorMessage != null && !trainingTypeValidationErrorMessage.isEmpty()) {
+        if (StringUtils.isBlank(trainingTypeValidationErrorMessage)) {
             message += trainingTypeValidationErrorMessage;
             errorOccurred = true;
         }
@@ -83,9 +107,10 @@ public class TrainingService {
             log.error(message);
             throw new UpdateRequestValidationException(message);
         }
-    }
+    }*/
 
-    private String validateTrainer(Long trainerId) {
+    private String validateTrainer(TrainingCreateRequest request) {
+        Long trainerId = request.getTrainerId();
         String errorMessage = "";
         if (trainerId == null || trainerId < 0) {
             errorMessage += "Trainer ID must be set and > 0!\n";
@@ -100,7 +125,8 @@ public class TrainingService {
         return errorMessage;
     }
 
-    private String validateTrainee(Long traineeId) {
+    private String validateTrainee(TrainingCreateRequest request) {
+        Long traineeId = request.getTraineeId();
         String errorMessage = "";
         if (traineeId == null || traineeId < 0) {
             errorMessage += "Trainee ID must be set and > 0!\n";
@@ -115,7 +141,8 @@ public class TrainingService {
         return errorMessage;
     }
 
-    private String validateTrainingType(Long trainingTypeId) {
+    private String validateTrainingType(TrainingCreateRequest request) {
+        Long trainingTypeId = request.getTrainingTypeId();
         String errorMessage = "";
         if (trainingTypeId == null || trainingTypeId < 0) {
             errorMessage += "Training type ID must be set and > 0!\n";
@@ -132,7 +159,7 @@ public class TrainingService {
 
     public List<Training> findByTraineeUsername(String username) {
         if (username == null || username.isEmpty()) {
-            throw new GetRequestValidationException("Could not find training. TRAINEE username is not provided!");
+            throw new RequestValidationException("Could not find training. TRAINEE username is not provided!");
         }
         return trainingRepository.findByTraineeUsername(username);
     }
@@ -143,7 +170,7 @@ public class TrainingService {
 
     public List<Training> findByTrainerUsername(String username) {
         if (username == null || username.isEmpty()) {
-            throw new GetRequestValidationException("Could not find training. TRAINER username is not provided!");
+            throw new RequestValidationException("Could not find training. TRAINER username is not provided!");
         }
         return trainingRepository.findByTrainerUsername(username);
     }
