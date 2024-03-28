@@ -34,7 +34,7 @@ public class TraineeService {
         UserUtils.validateCreateUserRequest(request.getUser());
         boolean errorOccurred = false;
         String message = "Failed to create new Trainee: \n";
-        if (request.getDateOfBirth().after(new Date())) {
+        if (request.getDateOfBirth() != null && request.getDateOfBirth().after(new Date())) {
             message += "User must be born to become trainee!";
             errorOccurred = true;
         }

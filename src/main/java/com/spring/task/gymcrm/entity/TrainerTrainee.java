@@ -10,12 +10,10 @@ public class TrainerTrainee {
     private Long id;
 
     @ManyToOne
-    @MapsId("traineeId")
     @JoinColumn(name = "trainee_id")
     private Trainee trainee;
 
     @ManyToOne
-    @MapsId("trainerId")
     @JoinColumn(name = "trainer_id")
     private Trainer trainer;
 }
