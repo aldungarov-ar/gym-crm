@@ -2,27 +2,38 @@ package com.spring.task.gymcrm;
 
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
+import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.RequestValidationException;
+import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.service.TraineeService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
 class TraineeServiceTest {
 
-    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
+    static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
     @Autowired
     private TraineeService traineeService;
+
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", container::getJdbcUrl);
+        registry.add("spring.datasource.username", container::getUsername);
+        registry.add("spring.datasource.password", container::getPassword);
+    }
 
     @BeforeAll
     static void beforeAll() {
@@ -35,14 +46,120 @@ class TraineeServiceTest {
         container.stop();
     }
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", container::getJdbcUrl);
-        registry.add("spring.datasource.username", container::getUsername);
-        registry.add("spring.datasource.password", container::getPassword);
+    private Trainee trainee;
+
+    @BeforeEach
+    void setUp() {
+        trainee = createTrainee();
     }
 
-    Trainee createTraineeCreateRequest() {
+    @AfterEach
+    void clearDb() throws IOException, InterruptedException {
+        container.execInContainer("psql", "-U", container.getUsername(),
+                "-d", container.getDatabaseName(), "-c", "TRUNCATE TABLE users CASCADE;");
+    }
+
+    Trainee createTrainee() {
+        Trainee trainee = new Trainee();
+        trainee.setUser(createUser());
+        trainee.setAddress("London GB");
+        Calendar calendar = new GregorianCalendar(1931, Calendar.SEPTEMBER, 12);
+        Date date = calendar.getTime();
+        trainee.setDateOfBirth(date);
+        return trainee;
+    }
+
+    User createUser() {
+        User user = User.builder()
+                .firstName("Ian")
+                .lastName("Holm")
+                .isActive(true)
+                .build();
+        user.setUsername("Ian.Holm");
+
+        return user;
+    }
+
+    @Test
+    void testCreateSuccess() {
+        Trainee createdTrainee = traineeService.create(trainee);
+        assertNotNull(createdTrainee);
+        assertNotNull(createdTrainee.getId());
+        String createdTraineeFirstName = createdTrainee.getUser().getFirstName();
+        String createdTraineeLastName = createdTrainee.getUser().getLastName();
+        assertEquals(createdTraineeFirstName + "." + createdTraineeLastName,
+                createdTrainee.getUser().getUsername());
+    }
+
+    @Test
+    void testCreateFailure() {
+        Trainee invalidTrainee = new Trainee();
+        assertThrows(UpdateRequestValidationException.class, () -> traineeService.create(invalidTrainee));
+    }
+
+    @Test
+    void testUpdateSuccess() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        String expectedAddress = "The Shire";
+        savedTrainee.setAddress(expectedAddress);
+        Trainee updatedTrainee = traineeService.update(savedTrainee);
+        assertEquals(expectedAddress, updatedTrainee.getAddress());
+    }
+
+    @Test
+    void testUpdateFailure() {
+        Trainee request = new Trainee();
+        request.setId(-1L);
+        assertThrows(UpdateRequestValidationException.class, () -> traineeService.update(request));
+    }
+
+    @Test
+    void testGetByIdSuccess() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        Trainee foundTrainee = traineeService.get(savedTrainee.getId()).get();
+        assertNotNull(foundTrainee);
+    }
+
+    @Test
+    void testGetByIdFailure() {
+        assertThrows(EntityNotFoundException.class, () -> traineeService.get(-1L));
+    }
+
+    @Test
+    void testGetByUsernameSuccess() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        Trainee foundTrainee = traineeService.get(savedTrainee.getUser().getUsername()).get();
+        assertNotNull(foundTrainee);
+    }
+
+    @Test
+    void testGetByUsernameFailure() {
+        assertThrows(RequestValidationException.class, () -> traineeService.get(""));
+    }
+
+    @Test
+    void testDelete() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        assertDoesNotThrow(() -> traineeService.delete(savedTrainee));
+        assertNull(traineeService.get(savedTrainee.getId()));
+    }
+
+    @Test
+    void testActivateSuccess() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        assertDoesNotThrow(() -> traineeService.activate(savedTrainee.getId()));
+        assertTrue(traineeService.get(savedTrainee.getId()).get().getUser().getIsActive());
+    }
+
+    @Test
+    void testDeactivateSuccess() {
+        Trainee savedTrainee = traineeService.create(trainee);
+        assertDoesNotThrow(() -> traineeService.deActivate(savedTrainee.getId()));
+        assertFalse(traineeService.get(savedTrainee.getId()).get().getUser().getIsActive());
+    }
+
+
+    /*Trainee createTraineeCreateRequest() {
         Trainee trainee = new Trainee();
         trainee.setUser(createUserCreateRequest());
         trainee.setAddress("London GB");
@@ -104,7 +221,7 @@ class TraineeServiceTest {
         Assertions.assertEquals(expectedTrainee.getUser().getIsActive(), createdTrainee.getUser().getIsActive());
         Assertions.assertEquals(expectedTrainee.getAddress(), createdTrainee.getAddress());
         Assertions.assertEquals(expectedTrainee.getDateOfBirth(), createdTrainee.getDateOfBirth());
-    }
+    }*/
 
     /*@Test
     void testUpdateTraineeSuccess() {

@@ -9,11 +9,13 @@ import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.UserUtils;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -63,9 +65,13 @@ public class TraineeService {
     }
 
     public Trainee update(Trainee request) {
+        if (request == null) {
+            throw new UpdateRequestValidationException("Update Trainee failed: request must not be null!");
+        }
+
         log.debug("Updating Trainee with ID: {}", request.getId());
 
-        Trainee trainee = get(request.getId());
+        Trainee trainee = get(request.getId()).orElseThrow(() -> new EntityNotFoundException("Failed to update Trainee. Trainee ID: " + request.getId() + " not found!"));
         if (request.getDateOfBirth() != null && !request.getDateOfBirth().equals(trainee.getDateOfBirth()) &&
                 request.getDateOfBirth().before(new Date())) {
             trainee.setDateOfBirth(request.getDateOfBirth());
@@ -79,18 +85,18 @@ public class TraineeService {
         return traineeRepository.save(trainee);
     }
 
-    public Trainee get(Long id) {
+    public Optional<Trainee> get(Long id) {
         if (id == null) {
             throw new RequestValidationException("Trainee ID must be set!");
         }
-        return traineeRepository.findById(id).orElse(null);
+        return traineeRepository.findById(id);
     }
 
-    public Trainee get(String username) {
-        if (username == null || username.isEmpty()) {
+    public Optional<Trainee> get(String username) {
+        if (StringUtils.isBlank(username)) {
             throw new RequestValidationException("Trainee USERNAME must be set!");
         }
-        return traineeRepository.findByUsername(username).orElse(null);
+        return traineeRepository.findByUsername(username);
     }
 
     public void delete(Trainee trainee) {

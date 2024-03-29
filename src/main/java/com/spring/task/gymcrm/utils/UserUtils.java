@@ -2,7 +2,10 @@ package com.spring.task.gymcrm.utils;
 
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
 
 @Slf4j
 public class UserUtils {
@@ -13,11 +16,17 @@ public class UserUtils {
     public static void validateCreateUserRequest(User requestUser) {
         boolean errorOccurred = false;
         String message = "Failed to create new User: \n";
-        if (requestUser.getFirstName() == null || requestUser.getFirstName().isEmpty()) {
+
+        if (requestUser == null) {
+            message += "User create request is missing!\n";
+            log.error(message);
+            throw new UpdateRequestValidationException(message);
+        }
+        if (StringUtils.isBlank(requestUser.getFirstName())) {
             message += "First name is missing!\n";
             errorOccurred = true;
         }
-        if (requestUser.getLastName() == null || requestUser.getLastName().isEmpty()) {
+        if (StringUtils.isBlank(requestUser.getLastName())) {
             message += "Last name is missing!\n";
             errorOccurred = true;
         }
@@ -38,7 +47,7 @@ public class UserUtils {
                 !requestLastName.equals(user.getLastName())) {
             user.setLastName(requestLastName);
         }
-        if (requestUser.getIsActive() != user.getIsActive()) {
+        if (!Objects.equals(requestUser.getIsActive(), user.getIsActive())) {
             user.setIsActive(requestUser.getIsActive());
         }
     }

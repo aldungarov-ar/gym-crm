@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,9 +58,14 @@ public class TrainerService {
     }
 
     public Trainer update(Trainer request) {
+        if (request == null) {
+            throw new UpdateRequestValidationException("Update Trainer failed: request must not be null!");
+        }
+
         log.debug("Updating Trainer with ID: {}", request.getId());
 
-        Trainer trainer = get(request.getId());
+        Trainer trainer = get(request.getId()).orElseThrow(() -> new EntityNotFoundException("Failed to update Trainer. Trainer ID: " + request.getId() + " not found!"));
+
         if (request.getSpecialization() != null) {
             trainer.setSpecialization(request.getSpecialization());
         }
@@ -69,18 +75,18 @@ public class TrainerService {
         return trainerRepository.save(trainer);
     }
 
-    public Trainer get(Long id) {
+    public Optional<Trainer> get(Long id) {
         if (id == null) {
             throw new RequestValidationException("Trainer ID must be set!");
         }
-        return trainerRepository.findById(id).orElse(null);
+        return trainerRepository.findById(id);
     }
 
-    public Trainer get(String username) {
+    public Optional<Trainer> get(String username) {
         if (username == null || username.isEmpty()) {
             throw new RequestValidationException("Trainer USERNAME must be set!");
         }
-        return trainerRepository.findByUsername(username).orElse(null);
+        return trainerRepository.findByUsername(username);
     }
 
     public void activate(Long id) {

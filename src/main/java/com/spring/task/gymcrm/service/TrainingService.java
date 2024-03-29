@@ -38,8 +38,10 @@ public class TrainingService {
 
     private Training createTrainingFromRequest(TrainingCreateRequest request) {
         Training training = new Training();
-        training.setTrainee(traineeService.get(request.getTraineeId()));
-        training.setTrainer(trainerService.get(request.getTrainerId()));
+        training.setTrainee(traineeService.get(request.getTraineeId())
+                .orElseThrow(() -> new EntityNotFoundException("Failed to create Training: Trainee not found!")));
+        training.setTrainer(trainerService.get(request.getTrainerId())
+                .orElseThrow(() -> new EntityNotFoundException("Failed to create Training: Trainer not found!")));
         training.setTrainingName(request.getName());
         training.setTrainingType(trainingTypeService.get(request.getTrainingTypeId()));
         training.setTrainingDate(request.getDate());
