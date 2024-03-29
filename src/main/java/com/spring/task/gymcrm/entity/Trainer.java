@@ -1,17 +1,28 @@
 package com.spring.task.gymcrm.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@NoArgsConstructor
+import java.util.Set;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "trainers")
 public class Trainer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
-    private Long specializationId;
 
-    public Trainer(Long userId, Long specializationId) {
-        this.userId = userId;
-        this.specializationId = specializationId;
-    }
+    @ManyToOne
+    @JoinColumn(name = "specialization_id")
+    private TrainingType specialization;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
+
+    @ManyToMany(mappedBy = "trainers")
+    private Set<Trainee> trainees;
 }

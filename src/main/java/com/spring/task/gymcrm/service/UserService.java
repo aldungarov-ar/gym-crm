@@ -1,78 +1,37 @@
 package com.spring.task.gymcrm.service;
 
-import com.spring.task.gymcrm.dao.UserDAO;
-import com.spring.task.gymcrm.dto.PasswordUpdateRq;
-import com.spring.task.gymcrm.dto.TraineeUpdateRq;
-import com.spring.task.gymcrm.dto.TrainerUpdateRq;
+import com.spring.task.gymcrm.dto.PasswordChangeRequest;
 import com.spring.task.gymcrm.entity.User;
-import com.spring.task.gymcrm.exception.DBUpdateException;
-import com.spring.task.gymcrm.exception.SamePasswordUpdateException;
-import com.spring.task.gymcrm.utils.PasswordUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.UnauthorizedException;
+import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
+import com.spring.task.gymcrm.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@SuppressWarnings("unused")
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class UserService {
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
 
-    @Autowired
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
-    }
+    public void changePassword(PasswordChangeRequest request) {
+        log.debug("Changing password for user with Username: {}", request.getUsername());
 
-    public Long save(User user) throws DBUpdateException {
-        user.setPassword(PasswordUtils.generatePassword());
-        Long id = userDAO.save(user);
-
-        User existingUser = userDAO.findByUsername(user.getUsername());
-
-        if (existingUser != null) {
-            user.setUsername(id + "_" + user.getUsername());
-            userDAO.update(user);
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            throw new UpdateRequestValidationException("New password must be different from the old password");
         }
 
-        return id;
-    }
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with Username: " + request.getUsername()));
 
-    public void updatePassword(PasswordUpdateRq passwordUpdateRq) throws SamePasswordUpdateException, DBUpdateException {
-        User user = userDAO.findById(passwordUpdateRq.getUserId());
-
-        if (!user.getPassword().equals(passwordUpdateRq.getNewPassword())) {
-            user.setPassword(passwordUpdateRq.getNewPassword());
-            userDAO.save(user);
-        } else {
-            throw new SamePasswordUpdateException("Failed to update password. New password is the same as old one.");
-        }
-    }
-
-    public void update(TrainerUpdateRq rq, Long id) throws DBUpdateException {
-        User user = userDAO.findById(id);
-        user.setFirstName(rq.getFirstName());
-        user.setLastName(rq.getLastName());
-        user.setIsActive(rq.isActive());
-
-        User existingUser = userDAO.findByUsername(user.getUsername());
-
-        if (existingUser != null) {
-            user.setUsername(id + "_" + user.getUsername());
+        if (!user.getPassword().equals(request.getOldPassword())) {
+            throw new UnauthorizedException("Old password is incorrect");
         }
 
-        userDAO.update(user);
-    }
-
-    public void update(TraineeUpdateRq rq, Long id) throws DBUpdateException {
-        User user = userDAO.findById(id);
-        user.setFirstName(rq.getFirstName());
-        user.setLastName(rq.getLastName());
-        user.setIsActive(rq.isActive());
-
-        User existingUser = userDAO.findByUsername(user.getUsername());
-
-        if (existingUser != null) {
-            user.setUsername(id + "_" + user.getUsername());
-        }
-
-        userDAO.update(user);
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+        log.info("Password changed successfully for user with Username: {}", request.getUsername());
     }
 }
