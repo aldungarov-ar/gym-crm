@@ -1,5 +1,6 @@
 package com.spring.task.gymcrm.utils;
 
+import com.spring.task.gymcrm.dto.UpdateDto;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LazyInitializationException;

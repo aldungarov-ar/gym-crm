@@ -1,6 +1,5 @@
 package com.spring.task.gymcrm.dto;
 
-import com.spring.task.gymcrm.utils.UpdateDto;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

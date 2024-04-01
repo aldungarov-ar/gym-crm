@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface TrainerService {
     Trainer create(@Valid TrainerDto trainerDto);
 
-    Optional<Trainer> get(long id);
+    Optional<Trainer> getById(long id);
 
-    Optional<Trainer> get(@NotNull String username);
+    Optional<Trainer> getByUsername(@NotNull String username);
 
     Trainer update(@Valid TrainerDto trainerDto);
 

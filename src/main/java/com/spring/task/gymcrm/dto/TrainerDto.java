@@ -3,7 +3,6 @@ package com.spring.task.gymcrm.dto;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.Training;
-import com.spring.task.gymcrm.utils.UpdateDto;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

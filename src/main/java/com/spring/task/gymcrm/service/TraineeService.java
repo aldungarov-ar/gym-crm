@@ -11,9 +11,9 @@ import java.util.Optional;
 public interface TraineeService {
     Trainee create(@Valid TraineeDto traineeDto);
 
-    Optional<Trainee> get(long id);
+    Optional<Trainee> getById(long id);
 
-    Optional<Trainee> get(@NotNull String username);
+    Optional<Trainee> getByUsername(@NotNull String username);
 
     Trainee update(@Valid TraineeDto traineeDto);
 

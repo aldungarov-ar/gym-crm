@@ -5,7 +5,7 @@ import com.spring.task.gymcrm.dto.TrainingDto;
 import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.repository.CriteriaName;
 import com.spring.task.gymcrm.repository.TrainingCriteriaRepository;
-import com.spring.task.gymcrm.utils.TrainingMapper;
+import com.spring.task.gymcrm.entity.mapper.TrainingMapper;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;

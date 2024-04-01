@@ -120,7 +120,7 @@ class TraineeServiceTest {
 
         Trainee createdTrainee = traineeService.create(traineeDto);
         expectedTrainee.setId(createdTrainee.getId());
-        Trainee foundTrainee = traineeService.get(expectedTrainee.getId()).get();
+        Trainee foundTrainee = traineeService.getById(expectedTrainee.getId()).get();
 
         assertNotNull(foundTrainee);
         assertEquals(expectedTrainee, foundTrainee);
@@ -134,7 +134,7 @@ class TraineeServiceTest {
         Trainee createadTrainee = traineeService.create(traineeDto);
         expectedTrainee.setId(createadTrainee.getId());
 
-        Trainee foundTrainee = traineeService.get(expectedTrainee.getUser().getUsername()).get();
+        Trainee foundTrainee = traineeService.getByUsername(expectedTrainee.getUser().getUsername()).get();
 
         assertNotNull(foundTrainee);
         assertEquals(expectedTrainee, foundTrainee);
@@ -181,7 +181,7 @@ class TraineeServiceTest {
 
         traineeService.delete(createdTrainee.getId());
 
-        assertTrue(traineeService.get(createdTrainee.getId()).isEmpty());
+        assertTrue(traineeService.getById(createdTrainee.getId()).isEmpty());
     }
 
     @Test
@@ -194,12 +194,12 @@ class TraineeServiceTest {
 
         traineeService.activate(createdTrainee.getId());
 
-        Trainee activatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        Trainee activatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertTrue(activatedTrainee.getUser().getIsActive());
 
         traineeService.activate(createdTrainee.getId());
 
-        Trainee repeatedlyActivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        Trainee repeatedlyActivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertTrue(repeatedlyActivatedTrainee.getUser().getIsActive());
     }
 
@@ -213,12 +213,12 @@ class TraineeServiceTest {
 
         traineeService.deActivate(createdTrainee.getId());
 
-        Trainee deactivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        Trainee deactivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertFalse(deactivatedTrainee.getUser().getIsActive());
 
         traineeService.deActivate(createdTrainee.getId());
 
-        Trainee repeatedlyDeactivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        Trainee repeatedlyDeactivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertFalse(repeatedlyDeactivatedTrainee.getUser().getIsActive());
     }
 
@@ -231,7 +231,7 @@ class TraineeServiceTest {
         String newPassword = "newPasswordThatMatchesRequirements";
         traineeService.changePassword(passwordChangeRequest);
 
-        Trainee updatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        Trainee updatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertEquals(newPassword, updatedTrainee.getUser().getPassword());
     }
 }

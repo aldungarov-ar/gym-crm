@@ -1,4 +1,4 @@
-package com.spring.task.gymcrm.utils;
+package com.spring.task.gymcrm.entity.mapper;
 
 import com.spring.task.gymcrm.dto.TrainingDto;
 import com.spring.task.gymcrm.entity.Trainee;
@@ -50,13 +50,13 @@ public class TrainingMapper {
 
     private Trainer findTrainer(TrainingDto trainingDto) {
         Long trainerId = trainingDto.getTrainerId();
-        return trainerService.get(trainerId).orElseThrow(() ->
+        return trainerService.getById(trainerId).orElseThrow(() ->
                 new EntityNotFoundException("Failed to create Training! Trainer ID " + trainerId + " not found!"));
     }
 
     private Trainee findTrainee(TrainingDto trainingDto) {
         Long traineeId = trainingDto.getTraineeId();
-        return traineeService.get(traineeId).orElseThrow(() ->
+        return traineeService.getById(traineeId).orElseThrow(() ->
                 new EntityNotFoundException("Failed to create Training! Trainee ID " + traineeId + " not found!"));
     }
 }

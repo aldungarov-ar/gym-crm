@@ -119,7 +119,7 @@ public class TrainerServiceTest {
 
         Trainer createdTrainer = trainerService.create(trainerDto);
         expectedTrainer.setId(createdTrainer.getId());
-        Trainer foundTrainer = trainerService.get(expectedTrainer.getId()).get();
+        Trainer foundTrainer = trainerService.getById(expectedTrainer.getId()).get();
 
         assertNotNull(foundTrainer);
         assertEquals(expectedTrainer, foundTrainer);
@@ -133,7 +133,7 @@ public class TrainerServiceTest {
         Trainer createadTrainer = trainerService.create(trainerDto);
         expectedTrainer.setId(createadTrainer.getId());
 
-        Trainer foundTrainer = trainerService.get(expectedTrainer.getUser().getUsername()).get();
+        Trainer foundTrainer = trainerService.getByUsername(expectedTrainer.getUser().getUsername()).get();
 
         assertNotNull(foundTrainer);
         assertEquals(expectedTrainer, foundTrainer);
@@ -177,7 +177,7 @@ public class TrainerServiceTest {
 
         trainerService.delete(createdTrainer.getId());
 
-        assertTrue(trainerService.get(createdTrainer.getId()).isEmpty());
+        assertTrue(trainerService.getById(createdTrainer.getId()).isEmpty());
     }
 
     @Test
@@ -190,12 +190,12 @@ public class TrainerServiceTest {
 
         trainerService.activate(createdTrainer.getId());
 
-        Trainer activatedTrainer = trainerService.get(createdTrainer.getId()).get();
+        Trainer activatedTrainer = trainerService.getById(createdTrainer.getId()).get();
         assertTrue(activatedTrainer.getUser().getIsActive());
 
         trainerService.activate(createdTrainer.getId());
 
-        Trainer repeatedlyActivatedTrainer = trainerService.get(createdTrainer.getId()).get();
+        Trainer repeatedlyActivatedTrainer = trainerService.getById(createdTrainer.getId()).get();
         assertTrue(repeatedlyActivatedTrainer.getUser().getIsActive());
     }
 
@@ -209,12 +209,12 @@ public class TrainerServiceTest {
 
         trainerService.deActivate(createdTrainer.getId());
 
-        Trainer deactivatedTrainer = trainerService.get(createdTrainer.getId()).get();
+        Trainer deactivatedTrainer = trainerService.getById(createdTrainer.getId()).get();
         assertFalse(deactivatedTrainer.getUser().getIsActive());
 
         trainerService.deActivate(createdTrainer.getId());
 
-        Trainer repeatedlyDeactivatedTrainer = trainerService.get(createdTrainer.getId()).get();
+        Trainer repeatedlyDeactivatedTrainer = trainerService.getById(createdTrainer.getId()).get();
         assertFalse(repeatedlyDeactivatedTrainer.getUser().getIsActive());
     }
 
@@ -227,7 +227,7 @@ public class TrainerServiceTest {
         String newPassword = "newPasswordThatMatchesRequirements";
         trainerService.changePassword(passwordChangeRequest);
 
-        Trainer updatedTrainer = trainerService.get(createdTrainer.getId()).get();
+        Trainer updatedTrainer = trainerService.getById(createdTrainer.getId()).get();
         assertEquals(newPassword, updatedTrainer.getUser().getPassword());
     }
 

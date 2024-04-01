@@ -1,4 +1,4 @@
-package com.spring.task.gymcrm.utils;
+package com.spring.task.gymcrm.dto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

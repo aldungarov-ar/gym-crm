@@ -1,4 +1,4 @@
-package com.spring.task.gymcrm.utils;
+package com.spring.task.gymcrm.entity.mapper;
 
 import com.spring.task.gymcrm.dto.TraineeDto;
 import com.spring.task.gymcrm.entity.Trainee;

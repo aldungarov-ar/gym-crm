@@ -11,7 +11,7 @@ import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.ReflectiveFieldUpdater;
-import com.spring.task.gymcrm.utils.TraineeMapper;
+import com.spring.task.gymcrm.entity.mapper.TraineeMapper;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -39,12 +39,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public Optional<Trainee> get(long id) {
+    public Optional<Trainee> getById(long id) {
         return traineeRepository.findById(id);
     }
 
     @Override
-    public Optional<Trainee> get(@NotNull String username) {
+    public Optional<Trainee> getByUsername(@NotNull String username) {
         return traineeRepository.findByUsername(username);
     }
 
@@ -73,7 +73,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public void activate(long id) {
-        Trainee trainee = get(id).orElseThrow(() ->
+        Trainee trainee = getById(id).orElseThrow(() ->
                 new EntityNotFoundException("Can not activate Trainee ID " + id + " not found!"));
         trainee.getUser().setIsActive(true);
         traineeRepository.save(trainee);
@@ -81,7 +81,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public void deActivate(long id) {
-        Trainee trainee = get(id).orElseThrow(() ->
+        Trainee trainee = getById(id).orElseThrow(() ->
                 new EntityNotFoundException("Can not deactivate Trainee ID " + id + " not found!"));
         trainee.getUser().setIsActive(false);
         traineeRepository.save(trainee);
@@ -90,7 +90,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public void changePassword(@Valid PasswordChangeRequest passwordChangeRequest) {
         String username = passwordChangeRequest.getUsername();
-        Trainee trainee = get(username).orElseThrow(() ->
+        Trainee trainee = getByUsername(username).orElseThrow(() ->
                 new EntityNotFoundException("Can not change password for Trainee username " + username + " not found!"));
         if (trainee.getUser().getPassword().equals(passwordChangeRequest.getNewPassword())) {
             throw new UpdateRequestValidationException("New password should not be the same as old!");
