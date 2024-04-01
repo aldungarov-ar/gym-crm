@@ -6,6 +6,7 @@ import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.entity.TrainingType;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
+import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.service.TraineeService;
 import com.spring.task.gymcrm.service.TrainerService;
 import com.spring.task.gymcrm.service.TrainingTypeService;
@@ -23,6 +24,7 @@ public class TrainingMapper {
         Trainee trainee = findTrainee(trainingDto);
         Trainer trainer = findTrainer(trainingDto);
         TrainingType trainingType = findTrainingType(trainingDto);
+        validateTrainerSpecialization(trainer, trainingType);
 
         return Training.builder().trainee(trainee)
                 .trainer(trainer)
@@ -31,6 +33,13 @@ public class TrainingMapper {
                 .trainingDate(trainingDto.getTrainingDate())
                 .trainingDuration(trainingDto.getTrainingDuration())
                 .build();
+    }
+
+    private static void validateTrainerSpecialization(Trainer trainer, TrainingType trainingType) {
+        if (!trainer.getSpecialization().equals(trainingType)) {
+            throw new UpdateRequestValidationException("Failed to create Training! Trainer specialization " + trainer.getSpecialization().getTrainingTypeName() +
+                    " does not match Training type " + trainingType.getTrainingTypeName() + "! Please choose a trainer with the correct specialization.");
+        }
     }
 
     private TrainingType findTrainingType(TrainingDto trainingDto) {

@@ -12,6 +12,8 @@ import com.spring.task.gymcrm.repository.TrainerRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.ReflectiveFieldUpdater;
 import com.spring.task.gymcrm.utils.TrainerMapper;
+import com.spring.task.gymcrm.utils.ValidationGroups;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Validated({ValidationGroups.UpdateOperation.class})
     public Trainer update(@Valid TrainerDto trainerDto) {
         Trainer existingTrainer = trainerRepository.findById(trainerDto.getId()).orElseThrow(() ->
                 new EntityNotFoundException("Filed to update Trainee with ID " + trainerDto.getId() + " not found!"));
@@ -108,6 +111,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Transactional
     public List<Trainer> getTrainersNotAssignToTrainee(@NotNull String traineeUsername) {
         return trainerRepository.findTrainersNotAssignedByTraineeUsernameIgnoreCase(traineeUsername);
     }

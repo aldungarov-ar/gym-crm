@@ -1,10 +1,12 @@
 package com.spring.task.gymcrm;
 
+import com.spring.task.gymcrm.dto.PasswordChangeRequest;
 import com.spring.task.gymcrm.dto.TraineeDto;
 import com.spring.task.gymcrm.dto.UserDto;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
-import com.spring.task.gymcrm.service.TraineeServiceImpl;
+import com.spring.task.gymcrm.service.TraineeService;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,8 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
@@ -29,7 +30,7 @@ class TraineeServiceTest {
 
     static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
     @Autowired
-    private TraineeServiceImpl traineeService;
+    private TraineeService traineeService;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
@@ -65,6 +66,15 @@ class TraineeServiceTest {
         return trainee;
     }
 
+    User createUser() {
+        return User.builder()
+                .firstName("Ian")
+                .lastName("Holm")
+                .username("Ian.Holm")
+                .isActive(false)
+                .build();
+    }
+
     TraineeDto createTraineeDto() {
         TraineeDto traineeDto = new TraineeDto();
         traineeDto.setUserDto(createUserDto());
@@ -79,18 +89,16 @@ class TraineeServiceTest {
         UserDto userDto = new UserDto();
         userDto.setFirstName("Ian");
         userDto.setLastName("Holm");
-        userDto.setIsActive(true);
+        userDto.setIsActive(false);
 
         return userDto;
     }
 
-    User createUser() {
-        return User.builder()
-                .firstName("Ian")
-                .lastName("Holm")
-                .username("Ian.Holm")
-                .isActive(true)
-                .build();
+    PasswordChangeRequest createPasswordChangeRequest(Trainee trainee) {
+        PasswordChangeRequest passwordChangeRequest = new PasswordChangeRequest();
+        passwordChangeRequest.setUsername(trainee.getUser().getUsername());
+        passwordChangeRequest.setNewPassword("newPasswordThatMatchesRequirements");
+        return passwordChangeRequest;
     }
 
     @Test
@@ -106,16 +114,124 @@ class TraineeServiceTest {
     }
 
     @Test
-    void testGetSuccess() {
+    void testGetByIdSuccess() {
         TraineeDto traineeDto = createTraineeDto();
         Trainee expectedTrainee = createTrainee();
-        expectedTrainee.setId(2L);
 
-        traineeService.create(traineeDto);
-
-        Trainee foundTrainee = traineeService.get(2L).get();
+        Trainee createdTrainee = traineeService.create(traineeDto);
+        expectedTrainee.setId(createdTrainee.getId());
+        Trainee foundTrainee = traineeService.get(expectedTrainee.getId()).get();
 
         assertNotNull(foundTrainee);
         assertEquals(expectedTrainee, foundTrainee);
+    }
+
+    @Test
+    void testGetByUsernameSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee expectedTrainee = createTrainee();
+
+        Trainee createadTrainee = traineeService.create(traineeDto);
+        expectedTrainee.setId(createadTrainee.getId());
+
+        Trainee foundTrainee = traineeService.get(expectedTrainee.getUser().getUsername()).get();
+
+        assertNotNull(foundTrainee);
+        assertEquals(expectedTrainee, foundTrainee);
+    }
+
+    @Test
+    void testUpdateSuccess() {
+        TraineeDto initialTraineeDtoToUpdate = createTraineeDto();
+        TraineeDto updateTraineeDto = createTraineeDtoForUpdate();
+        Trainee expectedTrainee = createTrainee();
+
+        Trainee createdTrainee = traineeService.create(initialTraineeDtoToUpdate);
+        expectedTrainee.getUser().setId(createdTrainee.getUser().getId());
+        expectedTrainee.setId(createdTrainee.getId());
+        updateTraineeDto.getUserDto().setId(createdTrainee.getUser().getId());
+        updateTraineeDto.setId(createdTrainee.getId());
+
+        Trainee updatedTrainee = traineeService.update(updateTraineeDto);
+
+        assertNotNull(updatedTrainee);
+        assertEquals(expectedTrainee, updatedTrainee);
+    }
+
+    @NotNull
+    private static TraineeDto createTraineeDtoForUpdate() {
+        UserDto userDto = new UserDto();
+        userDto.setFirstName("Bilbo");
+        userDto.setLastName("Baggins");
+        userDto.setIsActive(false);
+
+        TraineeDto traineeDto = new TraineeDto();
+        traineeDto.setUserDto(userDto);
+        traineeDto.setAddress("Shire");
+        Calendar calendar = new GregorianCalendar(1890, Calendar.SEPTEMBER, 22);
+        Date date = calendar.getTime();
+        traineeDto.setDateOfBirth(date);
+        return traineeDto;
+    }
+
+    @Test
+    void testDeleteSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        traineeService.delete(createdTrainee.getId());
+
+        assertTrue(traineeService.get(createdTrainee.getId()).isEmpty());
+    }
+
+    @Test
+    void testActivateSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        traineeDto.getUserDto().setIsActive(false);
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        assertFalse(createdTrainee.getUser().getIsActive());
+
+        traineeService.activate(createdTrainee.getId());
+
+        Trainee activatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        assertTrue(activatedTrainee.getUser().getIsActive());
+
+        traineeService.activate(createdTrainee.getId());
+
+        Trainee repeatedlyActivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        assertTrue(repeatedlyActivatedTrainee.getUser().getIsActive());
+    }
+
+    @Test
+    void deActivateSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        traineeDto.getUserDto().setIsActive(true);
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        assertTrue(createdTrainee.getUser().getIsActive());
+
+        traineeService.deActivate(createdTrainee.getId());
+
+        Trainee deactivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        assertFalse(deactivatedTrainee.getUser().getIsActive());
+
+        traineeService.deActivate(createdTrainee.getId());
+
+        Trainee repeatedlyDeactivatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        assertFalse(repeatedlyDeactivatedTrainee.getUser().getIsActive());
+    }
+
+    @Test
+    void changePasswordSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee createdTrainee = traineeService.create(traineeDto);
+        PasswordChangeRequest passwordChangeRequest = createPasswordChangeRequest(createdTrainee);
+
+        String newPassword = "newPasswordThatMatchesRequirements";
+        traineeService.changePassword(passwordChangeRequest);
+
+        Trainee updatedTrainee = traineeService.get(createdTrainee.getId()).get();
+        assertEquals(newPassword, updatedTrainee.getUser().getPassword());
     }
 }

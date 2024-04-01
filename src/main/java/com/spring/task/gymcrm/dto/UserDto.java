@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @UpdateDto(updatesClass = User.class)
 @Validated
 public class UserDto {
-    @NotNull(groups = ValidationGroups.OnUpdate.class,
+    @NotNull(groups = ValidationGroups.UpdateOperation.class,
             message = "User ID required for update operation!")
     private Long id;
 

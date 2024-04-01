@@ -12,6 +12,7 @@ import com.spring.task.gymcrm.repository.TraineeRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.ReflectiveFieldUpdater;
 import com.spring.task.gymcrm.utils.TraineeMapper;
+import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Validated({ValidationGroups.UpdateOperation.class})
     public Trainee update(@Valid TraineeDto traineeDto) {
         Trainee existingTrainee = traineeRepository.findById(traineeDto.getId()).orElseThrow(() ->
                 new EntityNotFoundException("Filed to update Trainee with ID " + traineeDto.getId() + " not found!"));

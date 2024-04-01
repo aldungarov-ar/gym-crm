@@ -6,6 +6,8 @@ import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.repository.CriteriaName;
 import com.spring.task.gymcrm.repository.TrainingCriteriaRepository;
 import com.spring.task.gymcrm.utils.TrainingMapper;
+import com.spring.task.gymcrm.utils.ValidationGroups;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingMapper trainingMapper;
 
     @Override
+    @Validated({ValidationGroups.CreateOperation.class})
+    @Transactional
     public Training create(@Valid TrainingDto trainingDto) {
         Training training = trainingMapper.toTraining(trainingDto);
         training.getTrainee().addTrainer(training.getTrainer());

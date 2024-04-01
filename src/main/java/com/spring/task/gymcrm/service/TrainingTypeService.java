@@ -14,7 +14,7 @@ import java.util.Optional;
 public class TrainingTypeService {
     private final TrainingTypeRepository trainingTypeRepository;
 
-    public Optional<TrainingType> get(Long id) {
+    public Optional<TrainingType> get(long id) {
         return trainingTypeRepository.findById(id);
     }
 }

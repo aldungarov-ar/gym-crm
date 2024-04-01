@@ -35,8 +35,7 @@ CREATE TABLE trainer_trainee (
     PRIMARY KEY (trainee_id, trainer_id)
 );
 
-
-CREATE TABLE training (
+CREATE TABLE trainings (
     id SERIAL PRIMARY KEY,
     trainee_id INTEGER REFERENCES trainees(id) ON DELETE CASCADE,
     trainer_id INTEGER REFERENCES trainers(id),
@@ -45,3 +44,6 @@ CREATE TABLE training (
     training_date DATE NOT NULL,
     training_duration INTEGER NOT NULL
 );
+
+INSERT INTO training_types (training_type_name) VALUES ('Cardio');
+INSERT INTO training_types (training_type_name) VALUES ('Strength');

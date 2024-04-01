@@ -1,6 +1,8 @@
 package com.spring.task.gymcrm.utils;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LazyInitializationException;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
+@Slf4j
 public class ReflectiveFieldUpdater<T, V> {
     private final T entity;
     private final V updateDto;
@@ -51,12 +54,12 @@ public class ReflectiveFieldUpdater<T, V> {
     }
 
     private void updateField(Field entityField, Field updateField) {
+        updateField.setAccessible(true);
+        entityField.setAccessible(true);
         if (!differentValues(entityField, updateField)) {
             return;
         }
         try {
-            updateField.setAccessible(true);
-            entityField.setAccessible(true);
             entityField.set(entity, updateField.get(updateDto));
         } catch (IllegalAccessException e) {
             //TODO write specific exception here
@@ -69,6 +72,9 @@ public class ReflectiveFieldUpdater<T, V> {
             Object entityFieldValue = entityField.get(entity);
             Object updateFieldValue = updateField.get(updateDto);
             return entityFieldValue.equals(updateFieldValue);
+        } catch (LazyInitializationException e) {
+            log.warn("Failed to compare field " + entityField.getName() + " values in " + entity.getClass() + " and " + updateDto.getClass() + " due to LazyInitializationException! SKIPPING!");
+            return false;
         } catch (IllegalAccessException e) {
             //TODO write specific exception here
             throw new RuntimeException(e);

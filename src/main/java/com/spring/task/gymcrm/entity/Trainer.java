@@ -28,11 +28,14 @@ public class Trainer {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @ManyToMany(mappedBy = "trainers")
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "trainer_trainee",
+            joinColumns = @JoinColumn(name = "trainer_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainee_id"))
     @ToString.Exclude
     private Set<Trainee> trainees;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "trainer")
     @ToString.Exclude
     private Set<Training> trainings;
 

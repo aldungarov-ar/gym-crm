@@ -16,11 +16,11 @@ import java.util.Set;
 @Validated
 public class TrainerDto {
 
-    @NotNull(groups = ValidationGroups.OnUpdate.class,
+    @NotNull(groups = ValidationGroups.UpdateOperation.class,
             message = "Trainer ID required for update operation!")
     private Long id;
 
-    @NotNull(groups = ValidationGroups.OnCreate.class,
+    @NotNull(groups = ValidationGroups.CreateOperation.class,
             message = "Specialization required for create operation!")
     private Long specializationId;
 

@@ -30,12 +30,12 @@ public class TrainingCriteriaRepository {
 
         if (criteriaMap.containsKey(CriteriaName.FROM_DATE)) {
             Date dateFrom = (Date) criteriaMap.get(CriteriaName.FROM_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
+            predicates.add(criteriaBuilder.greaterThan(training.get("trainingDate"), dateFrom));
         }
 
         if (criteriaMap.containsKey(CriteriaName.TO_DATE)) {
             Date dateFrom = (Date) criteriaMap.get(CriteriaName.TO_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
+            predicates.add(criteriaBuilder.greaterThan(training.get("trainingDate"), dateFrom));
         }
 
         if (criteriaMap.containsKey(CriteriaName.TRAINEE_USERNAME)) {
@@ -62,12 +62,12 @@ public class TrainingCriteriaRepository {
 
         if (criteriaMap.containsKey(CriteriaName.FROM_DATE)) {
             Date dateFrom = (Date) criteriaMap.get(CriteriaName.FROM_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
+            predicates.add(criteriaBuilder.greaterThan(training.get("trainingDate"), dateFrom));
         }
 
         if (criteriaMap.containsKey(CriteriaName.TO_DATE)) {
             Date dateFrom = (Date) criteriaMap.get(CriteriaName.TO_DATE);
-            predicates.add(criteriaBuilder.greaterThan(training.get("date"), dateFrom));
+            predicates.add(criteriaBuilder.greaterThan(training.get("trainingDate"), dateFrom));
         }
 
         if (criteriaMap.containsKey(CriteriaName.TRAINER_USERNAME)) {
@@ -77,9 +77,9 @@ public class TrainingCriteriaRepository {
             predicates.add(criteriaBuilder.equal(user.get("username"), trainerUsername));
         }
 
-        if (criteriaMap.containsKey(CriteriaName.TRAINING_TYPE)) {
+        if (criteriaMap.containsKey(CriteriaName.TRAINING_TYPE_ID)) {
             Join<Training, TrainingType> trainingType = training.join("trainingType", JoinType.INNER);
-            int trainingTypeId = Integer.parseInt(criteriaMap.get(CriteriaName.TRAINING_TYPE).toString());
+            int trainingTypeId = Integer.parseInt(criteriaMap.get(CriteriaName.TRAINING_TYPE_ID).toString());
             predicates.add(criteriaBuilder.equal(trainingType.get("id"), trainingTypeId));
         }
 

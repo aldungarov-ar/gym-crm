@@ -1,6 +1,6 @@
 package com.spring.task.gymcrm.utils;
 
 public interface ValidationGroups {
-    interface OnCreate {}
-    interface OnUpdate {}
+    interface CreateOperation {}
+    interface UpdateOperation {}
 }

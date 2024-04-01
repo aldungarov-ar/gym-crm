@@ -17,7 +17,7 @@ import java.util.Set;
 @UpdateDto(updatesClass = Trainee.class)
 @Validated
 public class TraineeDto {
-    @NotNull(groups = ValidationGroups.OnUpdate.class,
+    @NotNull(groups = ValidationGroups.UpdateOperation.class,
             message = "Trainee ID required for update operation!")
     private Long id;
 
