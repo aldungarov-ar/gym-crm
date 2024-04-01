@@ -8,7 +8,7 @@ public enum CriteriaName {
     TO_DATE("toDate"),
     TRAINER_USERNAME("trainerUsername"),
     TRAINEE_USERNAME("traineeUsername"),
-    TRAINING_TYPE("trainingType");
+    TRAINING_TYPE_ID("trainingType");
 
     private final String value;
 

@@ -1,10 +1,14 @@
 package com.spring.task.gymcrm;
 
+import com.spring.task.gymcrm.dto.PasswordChangeRequest;
+import com.spring.task.gymcrm.dto.TraineeDto;
+import com.spring.task.gymcrm.dto.UserDto;
 import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.service.TraineeService;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +17,27 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
 class TraineeServiceTest {
 
-    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
+    static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
     @Autowired
     private TraineeService traineeService;
+
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", container::getJdbcUrl);
+        registry.add("spring.datasource.username", container::getUsername);
+        registry.add("spring.datasource.password", container::getPassword);
+    }
 
     @BeforeAll
     static void beforeAll() {
@@ -35,16 +50,15 @@ class TraineeServiceTest {
         container.stop();
     }
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", container::getJdbcUrl);
-        registry.add("spring.datasource.username", container::getUsername);
-        registry.add("spring.datasource.password", container::getPassword);
+    @AfterEach
+    void clearDb() throws IOException, InterruptedException {
+        container.execInContainer("psql", "-U", container.getUsername(),
+                "-d", container.getDatabaseName(), "-c", "TRUNCATE TABLE users CASCADE;");
     }
 
-    Trainee createTraineeCreateRequest() {
+    Trainee createTrainee() {
         Trainee trainee = new Trainee();
-        trainee.setUser(createUserCreateRequest());
+        trainee.setUser(createUser());
         trainee.setAddress("London GB");
         Calendar calendar = new GregorianCalendar(1931, Calendar.SEPTEMBER, 12);
         Date date = calendar.getTime();
@@ -52,78 +66,172 @@ class TraineeServiceTest {
         return trainee;
     }
 
-    User createUserCreateRequest() {
-        User user = User.builder()
+    User createUser() {
+        return User.builder()
                 .firstName("Ian")
                 .lastName("Holm")
-                .isActive(true)
+                .username("Ian.Holm")
+                .isActive(false)
                 .build();
-        user.setUsername("Ian.Holm");
-
-        return user;
     }
 
-    Trainee createUpdateTraineeRequest() {
-        Trainee trainee = new Trainee();
-        trainee.setUser(createUpdateUserRequest());
-        trainee.setAddress("The Shire");
-        Calendar calendar = new GregorianCalendar(2890, Calendar.SEPTEMBER, 22);
+    TraineeDto createTraineeDto() {
+        TraineeDto traineeDto = new TraineeDto();
+        traineeDto.setUserDto(createUserDto());
+        traineeDto.setAddress("London GB");
+        Calendar calendar = new GregorianCalendar(1931, Calendar.SEPTEMBER, 12);
         Date date = calendar.getTime();
-        trainee.setDateOfBirth(date);
-        return trainee;
+        traineeDto.setDateOfBirth(date);
+        return traineeDto;
     }
 
-    private User createUpdateUserRequest() {
-        User user = User.builder()
-                .firstName("Bilbo")
-                .lastName("Baggins")
-                .isActive(true)
-                .build();
-        user.setUsername("Bilbo.Baggins");
+    private UserDto createUserDto() {
+        UserDto userDto = new UserDto();
+        userDto.setFirstName("Ian");
+        userDto.setLastName("Holm");
+        userDto.setIsActive(false);
 
-        return user;
+        return userDto;
+    }
+
+    PasswordChangeRequest createPasswordChangeRequest(Trainee trainee) {
+        PasswordChangeRequest passwordChangeRequest = new PasswordChangeRequest();
+        passwordChangeRequest.setUsername(trainee.getUser().getUsername());
+        passwordChangeRequest.setNewPassword("newPasswordThatMatchesRequirements");
+        return passwordChangeRequest;
     }
 
     @Test
-    void testCreateTraineeSuccess() {
-        // given
-        Trainee expectedTrainee = createTraineeCreateRequest();
-        Trainee traineeCreateRequest = createTraineeCreateRequest();
-        traineeCreateRequest.getUser().setUsername("");
+    void testCreateSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee expectedTrainee = createTrainee();
+        expectedTrainee.setId(1L);
 
-        // when
-        Trainee createdTrainee = traineeService.create(traineeCreateRequest);
+        Trainee createdTrainee = traineeService.create(traineeDto);
 
-        // then
-        Assertions.assertNotNull(createdTrainee);
-        Assertions.assertEquals(1L, createdTrainee.getId());
-        Assertions.assertEquals(expectedTrainee.getUser().getFirstName(), createdTrainee.getUser().getFirstName());
-        Assertions.assertEquals(expectedTrainee.getUser().getLastName(), createdTrainee.getUser().getLastName());
-        Assertions.assertEquals(createdTrainee.getUser().getFirstName() + "." + createdTrainee.getUser().getLastName(),
-                createdTrainee.getUser().getUsername());
-        Assertions.assertEquals(expectedTrainee.getUser().getIsActive(), createdTrainee.getUser().getIsActive());
-        Assertions.assertEquals(expectedTrainee.getAddress(), createdTrainee.getAddress());
-        Assertions.assertEquals(expectedTrainee.getDateOfBirth(), createdTrainee.getDateOfBirth());
+        assertNotNull(createdTrainee);
+        assertEquals(expectedTrainee, createdTrainee);
     }
 
-    /*@Test
-    void testUpdateTraineeSuccess() {
-        // given
-        Trainee expectedTrainee = createUpdateTraineeRequest();
-        Trainee traineeUpdateRequest = createUpdateTraineeRequest();
-        traineeUpdateRequest.setId(1L);
+    @Test
+    void testGetByIdSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee expectedTrainee = createTrainee();
 
-        // when
-        Trainee updatedTrainee = traineeService.update(traineeUpdateRequest);
+        Trainee createdTrainee = traineeService.create(traineeDto);
+        expectedTrainee.setId(createdTrainee.getId());
+        Trainee foundTrainee = traineeService.getById(expectedTrainee.getId()).get();
 
-        // then
-        Assertions.assertNotNull(updatedTrainee);
-        Assertions.assertEquals(expectedTrainee.getUser().getFirstName(), updatedTrainee.getUser().getFirstName());
-        Assertions.assertEquals(expectedTrainee.getUser().getLastName(), updatedTrainee.getUser().getLastName());
-        Assertions.assertEquals(updatedTrainee.getUser().getFirstName() + "." + updatedTrainee.getUser().getLastName(),
-                updatedTrainee.getUser().getUsername());
-        Assertions.assertEquals(expectedTrainee.getUser().getIsActive(), updatedTrainee.getUser().getIsActive());
-        Assertions.assertEquals(expectedTrainee.getAddress(), updatedTrainee.getAddress());
-        Assertions.assertEquals(expectedTrainee.getDateOfBirth(), updatedTrainee.getDateOfBirth());
-    }*/
+        assertNotNull(foundTrainee);
+        assertEquals(expectedTrainee, foundTrainee);
+    }
+
+    @Test
+    void testGetByUsernameSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee expectedTrainee = createTrainee();
+
+        Trainee createadTrainee = traineeService.create(traineeDto);
+        expectedTrainee.setId(createadTrainee.getId());
+
+        Trainee foundTrainee = traineeService.getByUsername(expectedTrainee.getUser().getUsername()).get();
+
+        assertNotNull(foundTrainee);
+        assertEquals(expectedTrainee, foundTrainee);
+    }
+
+    @Test
+    void testUpdateSuccess() {
+        TraineeDto initialTraineeDtoToUpdate = createTraineeDto();
+        TraineeDto updateTraineeDto = createTraineeDtoForUpdate();
+        Trainee expectedTrainee = createTrainee();
+
+        Trainee createdTrainee = traineeService.create(initialTraineeDtoToUpdate);
+        expectedTrainee.getUser().setId(createdTrainee.getUser().getId());
+        expectedTrainee.setId(createdTrainee.getId());
+        updateTraineeDto.getUserDto().setId(createdTrainee.getUser().getId());
+        updateTraineeDto.setId(createdTrainee.getId());
+
+        Trainee updatedTrainee = traineeService.update(updateTraineeDto);
+
+        assertNotNull(updatedTrainee);
+        assertEquals(expectedTrainee, updatedTrainee);
+    }
+
+    @NotNull
+    private static TraineeDto createTraineeDtoForUpdate() {
+        UserDto userDto = new UserDto();
+        userDto.setFirstName("Bilbo");
+        userDto.setLastName("Baggins");
+        userDto.setIsActive(false);
+
+        TraineeDto traineeDto = new TraineeDto();
+        traineeDto.setUserDto(userDto);
+        traineeDto.setAddress("Shire");
+        Calendar calendar = new GregorianCalendar(1890, Calendar.SEPTEMBER, 22);
+        Date date = calendar.getTime();
+        traineeDto.setDateOfBirth(date);
+        return traineeDto;
+    }
+
+    @Test
+    void testDeleteSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        traineeService.delete(createdTrainee.getId());
+
+        assertTrue(traineeService.getById(createdTrainee.getId()).isEmpty());
+    }
+
+    @Test
+    void testActivateSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        traineeDto.getUserDto().setIsActive(false);
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        assertFalse(createdTrainee.getUser().getIsActive());
+
+        traineeService.activate(createdTrainee.getId());
+
+        Trainee activatedTrainee = traineeService.getById(createdTrainee.getId()).get();
+        assertTrue(activatedTrainee.getUser().getIsActive());
+
+        traineeService.activate(createdTrainee.getId());
+
+        Trainee repeatedlyActivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
+        assertTrue(repeatedlyActivatedTrainee.getUser().getIsActive());
+    }
+
+    @Test
+    void deActivateSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        traineeDto.getUserDto().setIsActive(true);
+        Trainee createdTrainee = traineeService.create(traineeDto);
+
+        assertTrue(createdTrainee.getUser().getIsActive());
+
+        traineeService.deActivate(createdTrainee.getId());
+
+        Trainee deactivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
+        assertFalse(deactivatedTrainee.getUser().getIsActive());
+
+        traineeService.deActivate(createdTrainee.getId());
+
+        Trainee repeatedlyDeactivatedTrainee = traineeService.getById(createdTrainee.getId()).get();
+        assertFalse(repeatedlyDeactivatedTrainee.getUser().getIsActive());
+    }
+
+    @Test
+    void changePasswordSuccess() {
+        TraineeDto traineeDto = createTraineeDto();
+        Trainee createdTrainee = traineeService.create(traineeDto);
+        PasswordChangeRequest passwordChangeRequest = createPasswordChangeRequest(createdTrainee);
+
+        String newPassword = "newPasswordThatMatchesRequirements";
+        traineeService.changePassword(passwordChangeRequest);
+
+        Trainee updatedTrainee = traineeService.getById(createdTrainee.getId()).get();
+        assertEquals(newPassword, updatedTrainee.getUser().getPassword());
+    }
 }
