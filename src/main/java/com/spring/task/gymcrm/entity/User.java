@@ -2,11 +2,16 @@ package com.spring.task.gymcrm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
+
+import java.util.Objects;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@ToString
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -30,52 +35,19 @@ public class User {
     @Column(nullable = false)
     private Boolean isActive;
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-        this.username = firstName + "." + this.lastName;
+    @Override
+    public final boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null) return false;
+        Class<?> oEffectiveClass = object instanceof HibernateProxy ? ((HibernateProxy) object).getHibernateLazyInitializer().getPersistentClass() : object.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        User user = (User) object;
+        return getId() != null && Objects.equals(getId(), user.getId());
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-        this.username = this.firstName + "." + lastName;
-    }
-
-    private User(UserBuilder builder) {
-        this.firstName = builder.firstName;
-        this.lastName = builder.lastName;
-        this.username = firstName + "." + lastName;
-        this.password = builder.password;
-        this.isActive = builder.isActive;
-    }
-
-    public static class UserBuilder {
-        private String firstName;
-        private String lastName;
-        private String password;
-        private Boolean isActive;
-
-        public UserBuilder firstName(String firstName) {
-            this.firstName = firstName;
-            return this;
-        }
-
-        public UserBuilder lastName(String lastName) {
-            this.lastName = lastName;
-            return this;
-        }
-
-        public UserBuilder isActive(Boolean isActive) {
-            this.isActive = isActive;
-            return this;
-        }
-
-        public UserBuilder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public User build() {
-            return new User(this);
-        }
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }
