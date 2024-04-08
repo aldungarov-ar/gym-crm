@@ -1,17 +1,16 @@
 package com.spring.task.gymcrm.service;
 
 
-import com.spring.task.gymcrm.dto.PasswordChangeRequest;
-import com.spring.task.gymcrm.dto.TraineeDto;
-import com.spring.task.gymcrm.dto.UserDto;
+import com.spring.task.gymcrm.dto.*;
 import com.spring.task.gymcrm.entity.Trainee;
+import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.User;
+import com.spring.task.gymcrm.entity.mapper.TraineeMapper;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.ReflectiveFieldUpdater;
-import com.spring.task.gymcrm.entity.mapper.TraineeMapper;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,12 +30,14 @@ import java.util.Optional;
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TraineeMapper traineeMapper;
+    private final TrainerService trainerService;
 
 
     @Override
     public Trainee create(@Valid TraineeDto traineeDto) {
         traineeDto.getUserDto().setPassword(PasswordUtils.generatePassword());
         Trainee trainee = traineeMapper.toTrainee(traineeDto);
+
         return traineeRepository.save(trainee);
     }
 
@@ -67,8 +70,15 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void delete(long id) {
+    public void deleteById(long id) {
         traineeRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteByUsername(String username) {
+        Trainee trainee = getByUsername(username).orElseThrow(() ->
+                new EntityNotFoundException("Can not delete Trainee username " + username + " not found!"));
+        traineeRepository.delete(trainee);
     }
 
     @Override
@@ -97,5 +107,16 @@ public class TraineeServiceImpl implements TraineeService {
         }
         trainee.getUser().setPassword(passwordChangeRequest.getNewPassword());
         traineeRepository.save(trainee);
+    }
+
+    @Override
+    public List<Trainer> updateTrainersList(TrainersListUpdateRequest trainersListUpdateRequest) {
+        Trainee trainee = getByUsername(trainersListUpdateRequest.getTraineeUsername()).orElseThrow(() ->
+                new EntityNotFoundException("Can not update trainers list for Trainee username " + trainersListUpdateRequest.getTraineeUsername() + " not found!"));
+        for (String trainerUsername : trainersListUpdateRequest.getTrainersUsernames()) {
+            trainerService.getByUsername(trainerUsername).ifPresent(trainee::addTrainer);
+        }
+        Trainee savedTrainee = traineeRepository.save(trainee);
+        return new ArrayList<>(savedTrainee.getTrainers());
     }
 }

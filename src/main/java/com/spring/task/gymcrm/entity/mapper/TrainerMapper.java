@@ -1,10 +1,14 @@
 package com.spring.task.gymcrm.entity.mapper;
 
+import com.spring.task.gymcrm.dto.RegistrationAnswer;
 import com.spring.task.gymcrm.dto.TrainerDto;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -18,5 +22,25 @@ public class TrainerMapper {
                 .trainees(trainerDto.getTrainees())
                 .trainings(trainerDto.getTrainings())
                 .build();
+    }
+
+    public RegistrationAnswer toRegistrationAnswer(Trainer trainer) {
+        return userMapper.toRegistrationAnswer(trainer.getUser());
+    }
+
+    public TrainerDto toDto(Trainer trainer) {
+       return TrainerDto.builder().id(trainer.getId())
+               .userDto(userMapper.toDto(trainer.getUser()))
+               .trainees(trainer.getTrainees())
+               .trainings(trainer.getTrainings())
+               .build();
+    }
+
+    public List<TrainerDto> toDtoList(List<Trainer> trainers) {
+        List<TrainerDto> trainerDtoList = new ArrayList<>();
+        for (Trainer trainer : trainers) {
+            trainerDtoList.add(toDto(trainer));
+        }
+        return trainerDtoList;
     }
 }

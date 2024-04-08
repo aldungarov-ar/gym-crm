@@ -78,19 +78,18 @@ public class TrainerServiceTest {
     }
 
     TrainerDto createTrainerDto() {
-        TrainerDto trainerDto = new TrainerDto();
-        trainerDto.setUserDto(createUserDto());
-        trainerDto.setSpecializationId(1L);
-        return trainerDto;
+        return TrainerDto.builder()
+                .userDto(createUserDto())
+                .specializationId(1L)
+                .build();
     }
 
     private UserDto createUserDto() {
-        UserDto userDto = new UserDto();
-        userDto.setFirstName("Ian");
-        userDto.setLastName("Holm");
-        userDto.setIsActive(false);
-
-        return userDto;
+        return UserDto.builder()
+                .firstName("Ian")
+                .lastName("Holm")
+                .isActive(false)
+                .build();
     }
 
     PasswordChangeRequest createPasswordChangeRequest(Trainer trainer) {
@@ -159,15 +158,16 @@ public class TrainerServiceTest {
 
     @NotNull
     private static TrainerDto createTrainerDtoForUpdate() {
-        UserDto userDto = new UserDto();
-        userDto.setFirstName("Bilbo");
-        userDto.setLastName("Baggins");
-        userDto.setIsActive(false);
+        UserDto userDto = UserDto.builder()
+                .firstName("Bilbo")
+                .lastName("Baggins")
+                .isActive(false)
+                .build();
 
-        TrainerDto trainerDto = new TrainerDto();
-        trainerDto.setUserDto(userDto);
-        trainerDto.setSpecializationId(2L);
-        return trainerDto;
+        return TrainerDto.builder()
+                .userDto(userDto)
+                .specializationId(2L)
+                .build();
     }
 
     @Test
@@ -175,7 +175,7 @@ public class TrainerServiceTest {
         TrainerDto trainerDto = createTrainerDto();
         Trainer createdTrainer = trainerService.create(trainerDto);
 
-        trainerService.delete(createdTrainer.getId());
+        trainerService.deleteById(createdTrainer.getId());
 
         assertTrue(trainerService.getById(createdTrainer.getId()).isEmpty());
     }

@@ -76,22 +76,22 @@ class TraineeServiceTest {
     }
 
     TraineeDto createTraineeDto() {
-        TraineeDto traineeDto = new TraineeDto();
-        traineeDto.setUserDto(createUserDto());
-        traineeDto.setAddress("London GB");
         Calendar calendar = new GregorianCalendar(1931, Calendar.SEPTEMBER, 12);
         Date date = calendar.getTime();
-        traineeDto.setDateOfBirth(date);
-        return traineeDto;
+
+        return TraineeDto.builder()
+                .userDto(createUserDto())
+                .address("London GB")
+                .dateOfBirth(date)
+                .build();
     }
 
     private UserDto createUserDto() {
-        UserDto userDto = new UserDto();
-        userDto.setFirstName("Ian");
-        userDto.setLastName("Holm");
-        userDto.setIsActive(false);
-
-        return userDto;
+        return UserDto.builder()
+                .firstName("Ian")
+                .lastName("Holm")
+                .isActive(false)
+                .build();
     }
 
     PasswordChangeRequest createPasswordChangeRequest(Trainee trainee) {
@@ -160,18 +160,20 @@ class TraineeServiceTest {
 
     @NotNull
     private static TraineeDto createTraineeDtoForUpdate() {
-        UserDto userDto = new UserDto();
-        userDto.setFirstName("Bilbo");
-        userDto.setLastName("Baggins");
-        userDto.setIsActive(false);
+        UserDto userDto = UserDto.builder()
+                .firstName("Bilbo")
+                .lastName("Baggins")
+                .isActive(false)
+                .build();
 
-        TraineeDto traineeDto = new TraineeDto();
-        traineeDto.setUserDto(userDto);
-        traineeDto.setAddress("Shire");
         Calendar calendar = new GregorianCalendar(1890, Calendar.SEPTEMBER, 22);
         Date date = calendar.getTime();
-        traineeDto.setDateOfBirth(date);
-        return traineeDto;
+
+        return TraineeDto.builder()
+                .userDto(userDto)
+                .address("Shire")
+                .dateOfBirth(date)
+                .build();
     }
 
     @Test
@@ -179,7 +181,7 @@ class TraineeServiceTest {
         TraineeDto traineeDto = createTraineeDto();
         Trainee createdTrainee = traineeService.create(traineeDto);
 
-        traineeService.delete(createdTrainee.getId());
+        traineeService.deleteById(createdTrainee.getId());
 
         assertTrue(traineeService.getById(createdTrainee.getId()).isEmpty());
     }

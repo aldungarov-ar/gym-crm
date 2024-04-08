@@ -19,4 +19,9 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     @Query("select t from Trainer t where t.id not in " +
             "(select distinct tr.id from Trainer tr join tr.trainees trainees where upper(trainees.user.username) = upper(?1))")
     List<Trainer> findTrainersNotAssignedByTraineeUsernameIgnoreCase(String traineeUsername);
+
+    //TODO check if works correctly
+    @Transactional
+    @Query("delete from Trainer t where t.user.username = ?1")
+    void deleteByUsername(String username);
 }

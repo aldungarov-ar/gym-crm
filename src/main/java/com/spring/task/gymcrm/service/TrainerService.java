@@ -19,7 +19,9 @@ public interface TrainerService {
 
     Trainer update(@Valid TrainerDto trainerDto);
 
-    void delete(long id);
+    void deleteById(long id);
+
+    void deleteByUsername(String username);
 
     void activate(long id);
 

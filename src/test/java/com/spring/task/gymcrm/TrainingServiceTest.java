@@ -56,15 +56,14 @@ public class TrainingServiceTest {
     }*/
 
     TrainingDto createTrainingDto() {
-        TrainingDto trainingDto = new TrainingDto();
-        trainingDto.setTraineeId(1000L);
-        trainingDto.setTrainerId(2000L);
-        Date trainingDate = getDefaultTrainigDate();
-        trainingDto.setTrainingDate(trainingDate);
-        trainingDto.setTrainingTypeId(10L);
-        trainingDto.setTrainingName("Run hobbits!");
-        trainingDto.setTrainingDuration(60);
-        return trainingDto;
+        return TrainingDto.builder()
+                        .traineeId(1000L)
+                        .trainerId(2000L)
+                        .trainingDate(getDefaultTrainigDate())
+                        .trainingTypeId(10L)
+                        .trainingName("Run hobbits!")
+                        .trainingDuration(60)
+                        .build();
     }
 
     @NotNull

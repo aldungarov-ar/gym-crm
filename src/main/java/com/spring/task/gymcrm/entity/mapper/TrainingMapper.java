@@ -13,6 +13,9 @@ import com.spring.task.gymcrm.service.TrainingTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class TrainingMapper {
@@ -58,5 +61,24 @@ public class TrainingMapper {
         Long traineeId = trainingDto.getTraineeId();
         return traineeService.getById(traineeId).orElseThrow(() ->
                 new EntityNotFoundException("Failed to create Training! Trainee ID " + traineeId + " not found!"));
+    }
+
+    public TrainingDto toDto(Training training) {
+        return TrainingDto.builder()
+                .traineeId(training.getTrainee().getId())
+                .trainerId(training.getTrainer().getId())
+                .trainingName(training.getTrainingName())
+                .trainingTypeId(training.getTrainingType().getId())
+                .trainingDate(training.getTrainingDate())
+                .trainingDuration(training.getTrainingDuration())
+                .build();
+    }
+
+    public List<TrainingDto> toDtoList(List<Training> trainings) {
+        List<TrainingDto> trainingsDto = new ArrayList<>();
+        for (Training training : trainings) {
+            trainingsDto.add(toDto(training));
+        }
+        return trainingsDto;
     }
 }
