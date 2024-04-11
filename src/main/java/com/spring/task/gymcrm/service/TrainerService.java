@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TrainerService {
-    Trainer create(@Valid TrainerDto trainerDto);
+    TrainerDto create(@Valid TrainerDto trainerDto);
 
     Optional<Trainer> getById(long id);
 

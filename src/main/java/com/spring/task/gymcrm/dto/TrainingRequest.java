@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 @Validated
-public class TrainingsRequest {
+public class TrainingRequest {
     @NotNull
     private String traineeUsername;
     private Date dateFrom;

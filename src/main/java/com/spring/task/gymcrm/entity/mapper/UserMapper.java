@@ -1,6 +1,6 @@
 package com.spring.task.gymcrm.entity.mapper;
 
-import com.spring.task.gymcrm.dto.RegistrationAnswer;
+import com.spring.task.gymcrm.dto.Credentials;
 import com.spring.task.gymcrm.dto.UserDto;
 import com.spring.task.gymcrm.entity.User;
 import org.springframework.stereotype.Component;
@@ -26,11 +26,11 @@ public class UserMapper {
                 .build();
     }
 
-    public RegistrationAnswer toRegistrationAnswer(User user) {
-        RegistrationAnswer registrationAnswer = new RegistrationAnswer();
-        registrationAnswer.setUsername(user.getUsername());
-        registrationAnswer.setPassword(user.getPassword());
+    public Credentials toCredentials(UserDto userDto) {
+        Credentials credentials = new Credentials();
+        credentials.setUsername(userDto.getFirstName() + "." + userDto.getLastName());
+        credentials.setPassword(userDto.getPassword());
 
-        return registrationAnswer;
+        return credentials;
     }
 }

@@ -1,6 +1,5 @@
 package com.spring.task.gymcrm.controller;
 
-import com.spring.task.gymcrm.dto.RegistrationAnswer;
 import com.spring.task.gymcrm.dto.TrainerDto;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.mapper.TrainerMapper;
@@ -24,9 +23,8 @@ public class TrainerController {
     private final TrainerMapper trainerMapper;
 
     @PostMapping("/register")
-    public RegistrationAnswer registerTrainer(@Valid TrainerDto trainerDto) {
-        Trainer createdTrainer = trainerService.create(trainerDto);
-        return trainerMapper.toRegistrationAnswer(createdTrainer);
+    public TrainerDto registerTrainer(@Valid TrainerDto trainerDto) {
+        return trainerService.create(trainerDto);
     }
 
     @GetMapping("/{username}")

@@ -16,14 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
     private final UserService userService;
+
     @GetMapping("/login")
-    public ResponseEntity login(@Valid LoginRequest loginRequest) {
+    public ResponseEntity<Void> login(@Valid LoginRequest loginRequest) {
         userService.login(loginRequest);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity changePassword(@Valid PasswordChangeRequest passwordChangeRequest) {
+    public ResponseEntity<Void> changePassword(@Valid PasswordChangeRequest passwordChangeRequest) {
         userService.changePassword(passwordChangeRequest);
         return ResponseEntity.ok().build();
     }

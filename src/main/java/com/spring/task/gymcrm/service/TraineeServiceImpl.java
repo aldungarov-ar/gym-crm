@@ -6,6 +6,7 @@ import com.spring.task.gymcrm.entity.Trainee;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.User;
 import com.spring.task.gymcrm.entity.mapper.TraineeMapper;
+import com.spring.task.gymcrm.entity.mapper.TrainerMapper;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TraineeRepository;
@@ -21,7 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -31,33 +32,32 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TraineeMapper traineeMapper;
     private final TrainerService trainerService;
-
+    private final TrainerMapper trainerMapper;
 
     @Override
-    public Trainee create(@Valid TraineeDto traineeDto) {
+    public TraineeDto getByUsername(String username) {
+        Trainee trainee = findByUsername(username);
+        return traineeMapper.toDto(trainee);
+    }
+
+    @Override
+    public TraineeDto create(@Valid TraineeDto traineeDto) {
         traineeDto.getUserDto().setPassword(PasswordUtils.generatePassword());
         Trainee trainee = traineeMapper.toTrainee(traineeDto);
+        Trainee savedTrainee = traineeRepository.save(trainee);
 
-        return traineeRepository.save(trainee);
-    }
-
-    @Override
-    public Optional<Trainee> getById(long id) {
-        return traineeRepository.findById(id);
-    }
-
-    @Override
-    public Optional<Trainee> getByUsername(@NotNull String username) {
-        return traineeRepository.findByUsername(username);
+        return traineeMapper.toDto(savedTrainee);
     }
 
     @Override
     @Validated({ValidationGroups.UpdateOperation.class})
-    public Trainee update(@Valid TraineeDto traineeDto) {
+    public TraineeDto update(@Valid TraineeDto traineeDto) {
         Trainee existingTrainee = traineeRepository.findById(traineeDto.getId()).orElseThrow(() ->
-                new EntityNotFoundException("Filed to update Trainee with ID " + traineeDto.getId() + " not found!"));
+                new EntityNotFoundException("Failed to update Trainee with ID " + traineeDto.getId() + " not found!"));
         updateFields(existingTrainee, traineeDto);
-        return traineeRepository.save(existingTrainee);
+        Trainee savedTrainee = traineeRepository.save(existingTrainee);
+
+        return traineeMapper.toDto(savedTrainee);
     }
 
     private void updateFields(Trainee existingTrainee, TraineeDto traineeDto) {
@@ -76,23 +76,20 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public void deleteByUsername(String username) {
-        Trainee trainee = getByUsername(username).orElseThrow(() ->
-                new EntityNotFoundException("Can not delete Trainee username " + username + " not found!"));
+        Trainee trainee = findByUsername(username);
         traineeRepository.delete(trainee);
     }
 
     @Override
     public void activate(long id) {
-        Trainee trainee = getById(id).orElseThrow(() ->
-                new EntityNotFoundException("Can not activate Trainee ID " + id + " not found!"));
+        Trainee trainee = findById(id);
         trainee.getUser().setIsActive(true);
         traineeRepository.save(trainee);
     }
 
     @Override
     public void deActivate(long id) {
-        Trainee trainee = getById(id).orElseThrow(() ->
-                new EntityNotFoundException("Can not deactivate Trainee ID " + id + " not found!"));
+        Trainee trainee = findById(id);
         trainee.getUser().setIsActive(false);
         traineeRepository.save(trainee);
     }
@@ -100,8 +97,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public void changePassword(@Valid PasswordChangeRequest passwordChangeRequest) {
         String username = passwordChangeRequest.getUsername();
-        Trainee trainee = getByUsername(username).orElseThrow(() ->
-                new EntityNotFoundException("Can not change password for Trainee username " + username + " not found!"));
+        Trainee trainee = findByUsername(username);
         if (trainee.getUser().getPassword().equals(passwordChangeRequest.getNewPassword())) {
             throw new UpdateRequestValidationException("New password should not be the same as old!");
         }
@@ -110,13 +106,23 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public List<Trainer> updateTrainersList(TrainersListUpdateRequest trainersListUpdateRequest) {
-        Trainee trainee = getByUsername(trainersListUpdateRequest.getTraineeUsername()).orElseThrow(() ->
-                new EntityNotFoundException("Can not update trainers list for Trainee username " + trainersListUpdateRequest.getTraineeUsername() + " not found!"));
-        for (String trainerUsername : trainersListUpdateRequest.getTrainersUsernames()) {
+    public List<TrainerDto> updateTrainers(TraineeTrainersUpdateRequest traineeTrainersUpdateRequest) {
+        Trainee trainee = findByUsername(traineeTrainersUpdateRequest.getTraineeUsername());
+        for (String trainerUsername : traineeTrainersUpdateRequest.getTrainersUsernames()) {
             trainerService.getByUsername(trainerUsername).ifPresent(trainee::addTrainer);
         }
         Trainee savedTrainee = traineeRepository.save(trainee);
-        return new ArrayList<>(savedTrainee.getTrainers());
+        Set<Trainer> trainers = savedTrainee.getTrainers();
+        return trainerMapper.toDtoList(new ArrayList<>(trainers));
+    }
+
+    private Trainee findById(long id) {
+        return traineeRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Trainee with ID " + id + " not found!"));
+    }
+
+    private Trainee findByUsername(@NotNull String username) {
+        return traineeRepository.findByUsername(username).orElseThrow(() ->
+                new EntityNotFoundException("Trainee with username " + username + " not found!"));
     }
 }

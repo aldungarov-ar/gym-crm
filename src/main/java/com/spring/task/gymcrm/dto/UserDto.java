@@ -27,6 +27,7 @@ public class UserDto {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters!")
     private String lastName;
 
+    private String username;
     private String password;
     private Boolean isActive;
 }

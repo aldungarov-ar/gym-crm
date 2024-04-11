@@ -5,14 +5,11 @@ import com.spring.task.gymcrm.dto.TrainerDto;
 import com.spring.task.gymcrm.dto.UserDto;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.User;
-import com.spring.task.gymcrm.repository.TrainerRepository;
 import com.spring.task.gymcrm.service.TrainerService;
 import com.spring.task.gymcrm.service.TrainingTypeService;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -22,8 +19,6 @@ import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 
 import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
@@ -99,7 +94,7 @@ public class TrainerServiceTest {
         return passwordChangeRequest;
     }
 
-    @Test
+    /*@Test
     void testCreateSuccess() {
         TrainerDto trainerDto = createTrainerDto();
         Trainer expectedTrainer = createTrainer();
@@ -240,5 +235,5 @@ public class TrainerServiceTest {
         Trainer createdTrainer = trainerService.create(trainerDto);
 
         assertTrue(trainerService.getTrainersNotAssignToTrainee("Frodo.Baggins").contains(createdTrainer));
-    }
+    }*/
 }

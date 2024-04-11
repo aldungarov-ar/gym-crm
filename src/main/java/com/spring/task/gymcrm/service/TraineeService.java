@@ -2,23 +2,19 @@ package com.spring.task.gymcrm.service;
 
 import com.spring.task.gymcrm.dto.PasswordChangeRequest;
 import com.spring.task.gymcrm.dto.TraineeDto;
-import com.spring.task.gymcrm.dto.TrainersListUpdateRequest;
-import com.spring.task.gymcrm.entity.Trainee;
-import com.spring.task.gymcrm.entity.Trainer;
+import com.spring.task.gymcrm.dto.TraineeTrainersUpdateRequest;
+import com.spring.task.gymcrm.dto.TrainerDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface TraineeService {
-    Trainee create(@Valid TraineeDto traineeDto);
+    TraineeDto create(@Valid TraineeDto traineeDto);
 
-    Optional<Trainee> getById(long id);
+    TraineeDto getByUsername(@NotNull String username);
 
-    Optional<Trainee> getByUsername(@NotNull String username);
-
-    Trainee update(@Valid TraineeDto traineeDto);
+    TraineeDto update(@Valid TraineeDto traineeDto);
 
     void deleteById(long id);
 
@@ -30,5 +26,5 @@ public interface TraineeService {
 
     void changePassword(@Valid PasswordChangeRequest passwordChangeRequest);
 
-    List<Trainer> updateTrainersList(TrainersListUpdateRequest trainersListUpdateRequest);
+    List<TrainerDto> updateTrainers(TraineeTrainersUpdateRequest traineeTrainersUpdateRequest);
 }

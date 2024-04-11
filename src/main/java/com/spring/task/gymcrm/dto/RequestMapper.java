@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Component
 public class RequestMapper {
-    public Map<CriteriaName, Object> toCriteriaMap(TrainingsRequest request) {
+    public Map<CriteriaName, Object> toCriteriaMap(TrainingRequest request) {
         return Map.of(
                 CriteriaName.TRAINEE_USERNAME, request.getTraineeUsername(),
                 CriteriaName.FROM_DATE, request.getDateFrom(),

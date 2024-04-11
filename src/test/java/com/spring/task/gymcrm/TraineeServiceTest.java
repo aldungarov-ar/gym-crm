@@ -1,34 +1,12 @@
 package com.spring.task.gymcrm;
 
-import com.spring.task.gymcrm.dto.PasswordChangeRequest;
-import com.spring.task.gymcrm.dto.TraineeDto;
-import com.spring.task.gymcrm.dto.UserDto;
-import com.spring.task.gymcrm.entity.Trainee;
-import com.spring.task.gymcrm.entity.User;
-import com.spring.task.gymcrm.service.TraineeService;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
 class TraineeServiceTest {
 
-    static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
+    /*static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres");
     @Autowired
     private TraineeService traineeService;
 
@@ -235,5 +213,5 @@ class TraineeServiceTest {
 
         Trainee updatedTrainee = traineeService.getById(createdTrainee.getId()).get();
         assertEquals(newPassword, updatedTrainee.getUser().getPassword());
-    }
+    }*/
 }

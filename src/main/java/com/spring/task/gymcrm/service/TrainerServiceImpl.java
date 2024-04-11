@@ -33,7 +33,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerMapper trainerMapper;
 
     @Override
-    public Trainer create(@Valid TrainerDto trainerDto) {
+    public TrainerDto create(@Valid TrainerDto trainerDto) {
         trainerDto.getUserDto().setPassword(PasswordUtils.generatePassword());
         Trainer trainer = trainerMapper.toTrainer(trainerDto);
         Long specializationId = trainerDto.getSpecializationId();
@@ -41,7 +41,7 @@ public class TrainerServiceImpl implements TrainerService {
                 new EntityNotFoundException("Failed to create Trainer. Specialization ID: " + specializationId + " not found!"));
         trainer.setSpecialization(trainingType);
 
-        return trainerRepository.save(trainer);
+        return trainerMapper.toDto(trainerRepository.save(trainer));
     }
 
     @Override

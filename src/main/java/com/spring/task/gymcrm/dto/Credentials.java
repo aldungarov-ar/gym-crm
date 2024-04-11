@@ -3,7 +3,7 @@ package com.spring.task.gymcrm.dto;
 import lombok.Data;
 
 @Data
-public class RegistrationAnswer {
+public class Credentials {
     private String username;
     private String password;
 }

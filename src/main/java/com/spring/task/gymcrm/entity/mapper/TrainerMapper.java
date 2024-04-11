@@ -1,6 +1,6 @@
 package com.spring.task.gymcrm.entity.mapper;
 
-import com.spring.task.gymcrm.dto.RegistrationAnswer;
+import com.spring.task.gymcrm.dto.Credentials;
 import com.spring.task.gymcrm.dto.TrainerDto;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.User;
@@ -24,8 +24,8 @@ public class TrainerMapper {
                 .build();
     }
 
-    public RegistrationAnswer toRegistrationAnswer(Trainer trainer) {
-        return userMapper.toRegistrationAnswer(trainer.getUser());
+    public Credentials toRegistrationAnswer(TrainerDto trainerDto) {
+        return userMapper.toCredentials(trainerDto.getUserDto());
     }
 
     public TrainerDto toDto(Trainer trainer) {

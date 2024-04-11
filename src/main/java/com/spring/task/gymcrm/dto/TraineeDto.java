@@ -25,7 +25,6 @@ public class TraineeDto {
     @Past(message = "Date of birth must be in the past!")
     private Date dateOfBirth;
 
-
     private String address;
     private UserDto userDto;
     private Set<Trainer> trainers;
