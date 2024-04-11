@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TrainerService {
-    Trainer create(@Valid TrainerDto trainerDto);
+    TrainerDto create(@Valid TrainerDto trainerDto);
 
     Optional<Trainer> getById(long id);
 
@@ -19,7 +19,9 @@ public interface TrainerService {
 
     Trainer update(@Valid TrainerDto trainerDto);
 
-    void delete(long id);
+    void deleteById(long id);
+
+    void deleteByUsername(String username);
 
     void activate(long id);
 

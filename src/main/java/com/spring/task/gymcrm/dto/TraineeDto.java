@@ -6,6 +6,7 @@ import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.Set;
 
 @Data
+@Builder
 @UpdateDto(updatesClass = Trainee.class)
 @Validated
 public class TraineeDto {

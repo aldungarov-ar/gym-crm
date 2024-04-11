@@ -6,14 +6,13 @@ import com.spring.task.gymcrm.dto.UserDto;
 import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.TrainingType;
 import com.spring.task.gymcrm.entity.User;
+import com.spring.task.gymcrm.entity.mapper.TrainerMapper;
 import com.spring.task.gymcrm.exception.EntityNotFoundException;
 import com.spring.task.gymcrm.exception.UpdateRequestValidationException;
 import com.spring.task.gymcrm.repository.TrainerRepository;
 import com.spring.task.gymcrm.utils.PasswordUtils;
 import com.spring.task.gymcrm.utils.ReflectiveFieldUpdater;
-import com.spring.task.gymcrm.entity.mapper.TrainerMapper;
 import com.spring.task.gymcrm.utils.ValidationGroups;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -34,14 +33,15 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerMapper trainerMapper;
 
     @Override
-    public Trainer create(@Valid TrainerDto trainerDto) {
+    public TrainerDto create(@Valid TrainerDto trainerDto) {
         trainerDto.getUserDto().setPassword(PasswordUtils.generatePassword());
         Trainer trainer = trainerMapper.toTrainer(trainerDto);
         Long specializationId = trainerDto.getSpecializationId();
         TrainingType trainingType = trainingTypeService.get(specializationId).orElseThrow(() ->
                 new EntityNotFoundException("Failed to create Trainer. Specialization ID: " + specializationId + " not found!"));
         trainer.setSpecialization(trainingType);
-        return trainerRepository.save(trainer);
+
+        return trainerMapper.toDto(trainerRepository.save(trainer));
     }
 
     @Override
@@ -78,8 +78,15 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void delete(long id) {
+    public void deleteById(long id) {
         trainerRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteByUsername(String username) {
+        Trainer trainer = getByUsername(username).orElseThrow(() ->
+                new EntityNotFoundException("Can not delete Trainer username " + username + " not found!"));
+        trainerRepository.delete(trainer);
     }
 
     @Override
@@ -111,7 +118,6 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    @Transactional
     public List<Trainer> getTrainersNotAssignToTrainee(@NotNull String traineeUsername) {
         return trainerRepository.findTrainersNotAssignedByTraineeUsernameIgnoreCase(traineeUsername);
     }

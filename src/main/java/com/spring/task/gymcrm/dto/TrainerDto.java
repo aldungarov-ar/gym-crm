@@ -5,12 +5,14 @@ import com.spring.task.gymcrm.entity.Trainer;
 import com.spring.task.gymcrm.entity.Training;
 import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Set;
 
 @Data
+@Builder
 @UpdateDto(updatesClass = Trainer.class)
 @Validated
 public class TrainerDto {

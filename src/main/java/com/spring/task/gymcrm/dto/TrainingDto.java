@@ -4,6 +4,7 @@ import com.spring.task.gymcrm.utils.ValidationGroups;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
@@ -12,6 +13,7 @@ import java.util.Date;
 @Data
 @UpdateDto(updatesClass = TrainingDto.class)
 @Validated
+@Builder
 public class TrainingDto {
 
     @NotNull(groups = ValidationGroups.UpdateOperation.class,
